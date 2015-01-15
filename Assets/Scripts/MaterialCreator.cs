@@ -20,10 +20,10 @@ public class MaterialCreator : MonoBehaviour
         _screenL = GameObject.Find("screenL");
         _screenR = GameObject.Find("screenR");
 
-        _matL = new Material(Shader.Find("Diffuse"));
-        _matR = new Material(Shader.Find("Diffuse"));
-
-        _matL.SetColor("_Color", new Color(1, 1, 1));
+        _matL = new Material(Shader.Find("Unlit/Texture"));
+		_matR = new Material(Shader.Find("Unlit/Texture"));
+		
+		_matL.SetColor("_Color", new Color(1, 1, 1));
         _matR.SetColor("_Color", new Color(1, 1, 1));
 
         _screenL.renderer.material = _matL;
