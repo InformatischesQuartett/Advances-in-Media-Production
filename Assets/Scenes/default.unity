@@ -172,7 +172,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9b314e72e09aac24ea1d8ac469c46440, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Format: 1
+  Format: 0
+  Complete: {fileID: 0}
+  dummyFP: {fileID: 2800000, guid: eb8678b635c087e4792f6c25f5ff7503, type: 3}
+  tex: {fileID: 0}
 --- !u!114 &1588954080
 MonoBehaviour:
   m_ObjectHideFlags: 0
