@@ -122,23 +122,26 @@ public class CreateTwoTexture : MonoBehaviour
 		
 		if (Complete != null)
         {
-            RenderTexture.active = (RenderTexture) liveCamTexture;
-			Complete.ReadPixels(_rectC, 0, 0, false);
-            RenderTexture.active = null;
+          //  RenderTexture.active = (RenderTexture) liveCamTexture;
+		//	Complete.ReadPixels(_rectC, 0, 0, false);
+         //   RenderTexture.active = null;
 
-			Color32[] colors = Complete.GetPixels32();
-			var handle = GCHandle.Alloc(colors, GCHandleType.Pinned);
-			
+		//	Color32[] colors = Complete.GetPixels32();
+		//	var handle = GCHandle.Alloc(colors, GCHandleType.Pinned);
+
+			var ptr = GetComponent<AVProLiveCameraGrabber>().GetPointer();
+
 			var depthImg = new Image<Rgba, byte>(liveCamTexture.width,liveCamTexture.height, 4*liveCamTexture.width,
-			                                     handle.AddrOfPinnedObject()).Convert<Rgb, byte>();
+			                                     ptr).Convert<Rgb, byte>();
 
-			handle.Free();
+		//	handle.Free();
 
 			var resizedImage = depthImg.Resize(depthImg.Width, depthImg.Height/2, INTER.CV_INTER_NN, false);
-			depthImg = depthImg.Flip(FLIP.VERTICAL);
-
+			//depthImg = depthImg.Flip(FLIP.VERTICAL);
+			//depthImg.Flip(FLIP.HORIZONTAL);
 			var resizedImage2 = depthImg.Resize(depthImg.Width, depthImg.Height / 2, INTER.CV_INTER_NN, false);
-			resizedImage2 = resizedImage2.Flip(FLIP.VERTICAL);
+			//resizedImage2 = resizedImage2.Flip(FLIP.VERTICAL);
+			//resizedImage2.Flip(FLIP.HORIZONTAL);
 
 			Right.LoadRawTextureData(PrepareRenderImage(resizedImage));
         	Right.Apply();

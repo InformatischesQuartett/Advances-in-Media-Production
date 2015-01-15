@@ -73,7 +73,12 @@ public class AVProLiveCameraGrabber : MonoBehaviour
 #endif
 		}
 	}
-	
+
+	public System.IntPtr GetPointer()
+	{
+		return _framePointer;
+	}
+
 	private void FreeBuffer()
 	{		
 		if (_frameHandle.IsAllocated)
