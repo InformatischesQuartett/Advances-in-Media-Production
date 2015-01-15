@@ -174,8 +174,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Format: 0
   Complete: {fileID: 0}
-  dummyFP: {fileID: 2800000, guid: eb8678b635c087e4792f6c25f5ff7503, type: 3}
-  tex: {fileID: 0}
 --- !u!114 &1588954080
 MonoBehaviour:
   m_ObjectHideFlags: 0
