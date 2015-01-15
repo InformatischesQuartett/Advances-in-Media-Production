@@ -16,7 +16,7 @@ public class CreateTwoTexture : MonoBehaviour
 
     public Texture2D Left { get; private set; }
 
-    public Texture2D Right { get; private set; }
+    public Texture2D Right { get; set; }
     public Texture2D Complete;
 
 	private Rect _rectL, _rectR, _rectC;
@@ -45,7 +45,7 @@ public class CreateTwoTexture : MonoBehaviour
 		RenderTexture.active = null;
 	}
 
-    private void OnGUI()
+    /*private void OnGUI()
     {
         if (_liveCamera.OutputTexture != null && Left != null && Right != null)
         {
@@ -53,13 +53,17 @@ public class CreateTwoTexture : MonoBehaviour
             GUI.DrawTexture(new Rect(150, 200, 200, 200), Left, ScaleMode.ScaleToFit, false);
             GUI.DrawTexture(new Rect(350, 200, 200, 200), Right, ScaleMode.ScaleToFit, false);
         }
-    }
+    }*/
 
     void OnPostRender()
     {            
         if (_liveCamera.OutputTexture != null)
         {
             Convert();
+			if(_first == true)
+			{
+				this.GetComponent<MaterialCreator>().Init();
+			}
         }
     }
 
