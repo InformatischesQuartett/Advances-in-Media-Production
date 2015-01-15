@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Runtime.InteropServices;
 using UnityEngine;
 using System.Collections;
-using System.Diagnostics;
 
 using Emgu.CV;
 using Emgu.CV.Structure;
@@ -16,14 +14,12 @@ public class CreateTwoTexture : MonoBehaviour
     public StereoFormat Format;
 
     public Texture2D Left { get; private set; }
+    public Texture2D Right { get; private set; }
+    public Texture2D Complete { get; private set; }
 
-    public Texture2D Right { get; set; }
-    public Texture2D Complete;
+    private Rect _rectL, _rectR;
 
-	private Rect _rectL, _rectR, _rectC;
-
-	private byte[] _linData;
-	private bool _first = true;
+    private bool _first = true;
 
     public enum StereoFormat
     {
@@ -31,20 +27,16 @@ public class CreateTwoTexture : MonoBehaviour
         SideBySide
     }
 
-	// Use this for initialization
-	IEnumerator Start ()
-	{
+    // Use this for initialization
+    private IEnumerator Start()
+    {
         Left = Right = null;
-	    _liveCamera = this.GetComponent<AVProLiveCamera>();
+        _liveCamera = this.GetComponent<AVProLiveCamera>();
 
-	    yield return new WaitForSeconds(1);
+        yield return new WaitForSeconds(1);
 
         CreateNewTexture(_liveCamera.OutputTexture, Format);
-
-		RenderTexture.active = (RenderTexture) _liveCamera.OutputTexture;
-		Complete.ReadPixels(new Rect(0, 0, Complete.width, Complete.height), 0, 0, false);
-		RenderTexture.active = null;
-	}
+    }
 
     /*private void OnGUI()
     {
@@ -56,36 +48,34 @@ public class CreateTwoTexture : MonoBehaviour
         }
     }*/
 
-    void OnPostRender()
-    {            
-        if (_liveCamera.OutputTexture != null)
+    private void Update()
+    {
+        if (_liveCamera.OutputTexture == null)
+            return;
+
+        if (_first)
         {
-            Convert();
-			if(_first == true)
-			{
-				this.GetComponent<MaterialCreator>().Init();
-			}
+            GetComponent<MaterialCreator>().Init();
+            _first = false;
         }
+
+        Convert();
     }
 
     private void Convert()
     {
         if (Format == StereoFormat.SideBySide)
-        {
             ConvertSBS(_liveCamera.OutputTexture);
-        }
-        else if(Format == StereoFormat.FramePacking)
-        {
-            ConvertFP(_liveCamera.OutputTexture); //rien ne vas plus
-        }
-    }
 
+        if (Format == StereoFormat.FramePacking)
+            ConvertFP(_liveCamera.OutputTexture); //rien ne vas plus
+    }
 
     private void ConvertSBS(Texture liveCamTexture)
     {
         if (Left != null && Right != null)
         {
-            RenderTexture.active = (RenderTexture)liveCamTexture;
+            RenderTexture.active = (RenderTexture) liveCamTexture;
 
             Left.ReadPixels(_rectL, 0, 0, false);
             Left.Apply();
@@ -100,75 +90,51 @@ public class CreateTwoTexture : MonoBehaviour
             CreateNewTexture(liveCamTexture, Format);
         }
     }
-	 
-	private byte[] PrepareRenderImage(Image<Rgb, byte> img)
-    {
-		if (_first == true) 
-		{
-			_linData = new byte[img.Data.Length];
-			_first= false;
-		}
 
-		Buffer.BlockCopy(img.Data, 0, _linData, 0, img.Data.Length);
-        return _linData;
+    private byte[] PrepareRenderImage(Image<Rgb, byte> img)
+    {
+        var linData = new byte[img.Data.Length];
+        Buffer.BlockCopy(img.Data, 0, linData, 0, img.Data.Length);
+        return linData;
     }
-	
-    private unsafe void ConvertFP(Texture liveCamTexture)
+
+    private void ConvertFP(Texture liveCamTexture)
     {
-		var watch = new Stopwatch();
-		watch.Start();
-
-
-		
-		if (Complete != null)
+        if (Complete != null)
         {
-          //  RenderTexture.active = (RenderTexture) liveCamTexture;
-		//	Complete.ReadPixels(_rectC, 0, 0, false);
-         //   RenderTexture.active = null;
+            var depthImg = new Image<Rgba, byte>(liveCamTexture.width, liveCamTexture.height, 4*liveCamTexture.width,
+                AVProLiveCameraPlugin.GetLastFrameBuffered(_liveCamera.Device.DeviceIndex)).Convert<Rgb, byte>();
 
-		//	Color32[] colors = Complete.GetPixels32();
-		//	var handle = GCHandle.Alloc(colors, GCHandleType.Pinned);
+            var resizedImage = depthImg.Resize(depthImg.Width, depthImg.Height/2, INTER.CV_INTER_NN, false);
+            depthImg = depthImg.Flip(FLIP.VERTICAL);
 
-			var ptr = GetComponent<AVProLiveCameraGrabber>().GetPointer();
+            var resizedImage2 = depthImg.Resize(depthImg.Width, depthImg.Height/2, INTER.CV_INTER_NN, false);
+            resizedImage2 = resizedImage2.Flip(FLIP.VERTICAL);
 
-			var depthImg = new Image<Rgba, byte>(liveCamTexture.width,liveCamTexture.height, 4*liveCamTexture.width,
-			                                     ptr).Convert<Rgb, byte>();
+            Right.LoadRawTextureData(PrepareRenderImage(resizedImage));
+            Right.Apply();
 
-		//	handle.Free();
-
-			var resizedImage = depthImg.Resize(depthImg.Width, depthImg.Height/2, INTER.CV_INTER_NN, false);
-			//depthImg = depthImg.Flip(FLIP.VERTICAL);
-			//depthImg.Flip(FLIP.HORIZONTAL);
-			var resizedImage2 = depthImg.Resize(depthImg.Width, depthImg.Height / 2, INTER.CV_INTER_NN, false);
-			//resizedImage2 = resizedImage2.Flip(FLIP.VERTICAL);
-			//resizedImage2.Flip(FLIP.HORIZONTAL);
-
-			Right.LoadRawTextureData(PrepareRenderImage(resizedImage));
-        	Right.Apply();
-        	Left.LoadRawTextureData(PrepareRenderImage(resizedImage2));
-       	 	Left.Apply();         
+            Left.LoadRawTextureData(PrepareRenderImage(resizedImage2));
+            Left.Apply();
         }
         else
-        {
             CreateNewTexture(liveCamTexture, Format);
-        }
     }
 
     private void CreateNewTexture(Texture liveCamTexture, StereoFormat format)
     {
         if (format == StereoFormat.SideBySide)
         {
-            Left = new Texture2D(liveCamTexture.width / 2, liveCamTexture.height, TextureFormat.RGB24, false);
-			Right = new Texture2D(liveCamTexture.width / 2, liveCamTexture.height, TextureFormat.RGB24, false);
-			_rectL = new Rect(0, 0, Left.width, Left.height);
-			_rectR = new Rect(Right.width, 0, Right.width*2, Right.height);
+            Left = new Texture2D(liveCamTexture.width/2, liveCamTexture.height, TextureFormat.RGB24, false);
+            Right = new Texture2D(liveCamTexture.width/2, liveCamTexture.height, TextureFormat.RGB24, false);
+            _rectL = new Rect(0, 0, Left.width, Left.height);
+            _rectR = new Rect(Right.width, 0, Right.width*2, Right.height);
         }
         else if (format == StereoFormat.FramePacking)
         {
-			Left = new Texture2D(liveCamTexture.width, liveCamTexture.height / 2, TextureFormat.RGB24, false);
-			Right = new Texture2D(liveCamTexture.width, liveCamTexture.height / 2, TextureFormat.RGB24, false);
-			Complete = new Texture2D(liveCamTexture.width, liveCamTexture.height, TextureFormat.RGB24, false);
-			_rectC = new Rect(0, 0, Complete.width, Complete.height);
-		}
+            Left = new Texture2D(liveCamTexture.width, liveCamTexture.height/2, TextureFormat.RGB24, false);
+            Right = new Texture2D(liveCamTexture.width, liveCamTexture.height/2, TextureFormat.RGB24, false);
+            Complete = new Texture2D(liveCamTexture.width, liveCamTexture.height, TextureFormat.RGB24, false);
+        }
     }
 }
