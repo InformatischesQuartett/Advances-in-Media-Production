@@ -2,6 +2,7 @@
 using System.Runtime.InteropServices;
 using UnityEngine;
 using System.Collections;
+using System.Diagnostics;
 
 using Emgu.CV;
 using Emgu.CV.Structure;
@@ -78,10 +79,8 @@ public class CreateTwoTexture : MonoBehaviour
 
     private void ConvertSBS(Texture liveCamTexture)
     {
-        
         if (Left != null && Right != null)
         {
-
             RenderTexture.active = (RenderTexture)liveCamTexture;
 
             Left.ReadPixels(_rectL, 0, 0, false);
@@ -98,69 +97,49 @@ public class CreateTwoTexture : MonoBehaviour
         }
     }
 	 
-	private byte[] PrepareRenderImage(Image<Rgba, byte> img)
+	private byte[] PrepareRenderImage(Image<Rgb, byte> img)
     {
-        var convertedImg = img.Convert<Rgb, byte>();
 		if (_first == true) 
 		{
-			_linData = new byte[convertedImg.Data.Length];
+			_linData = new byte[img.Data.Length];
 			_first= false;
 		}
 
-        Buffer.BlockCopy(convertedImg.Data, 0, _linData, 0, convertedImg.Data.Length);
+		Buffer.BlockCopy(img.Data, 0, _linData, 0, img.Data.Length);
         return _linData;
     }
-
-    private static byte[] Color32ArrayToByteArray(Color32[] colors)
-    {
-        if (colors == null || colors.Length == 0)
-            return null;
-
-        int lengthOfColor32 = Marshal.SizeOf(typeof(Color32));
-        int length = lengthOfColor32 * colors.Length;
-        byte[] bytes = new byte[length];
-
-        GCHandle handle = default(GCHandle);
-        try
-        {
-            handle = GCHandle.Alloc(colors, GCHandleType.Pinned);
-            IntPtr ptr = handle.AddrOfPinnedObject();
-            Marshal.Copy(ptr, bytes, 0, length);
-        }
-        finally
-        {
-            if (handle != default(GCHandle))
-                handle.Free();
-        }
-
-        return bytes;
-    }
-
+	
     private unsafe void ConvertFP(Texture liveCamTexture)
     {
-        if (Complete != null)
+		var watch = new Stopwatch();
+		watch.Start();
+
+
+		
+		if (Complete != null)
         {
             RenderTexture.active = (RenderTexture) liveCamTexture;
 			Complete.ReadPixels(_rectC, 0, 0, false);
             RenderTexture.active = null;
 
-            byte[] bytes = Color32ArrayToByteArray(Complete.GetPixels32());
-            fixed (byte* dataPtr = bytes)
-            {
+			Color32[] colors = Complete.GetPixels32();
+			var handle = GCHandle.Alloc(colors, GCHandleType.Pinned);
+			
+			var depthImg = new Image<Rgba, byte>(liveCamTexture.width,liveCamTexture.height, 4*liveCamTexture.width,
+			                                     handle.AddrOfPinnedObject()).Convert<Rgb, byte>();
 
-                var depthImg = new Image<Rgba, byte>(liveCamTexture.width,liveCamTexture.height, 4*liveCamTexture.width,
-                    new IntPtr(dataPtr));
-                var resizedImage = depthImg.Resize(liveCamTexture.width, liveCamTexture.height/2, INTER.CV_INTER_NN,
-                    false);
-                depthImg = depthImg.Flip(FLIP.VERTICAL);
-                var resizedImage2 = depthImg.Resize(depthImg.Width, depthImg.Height / 2, INTER.CV_INTER_NN,
-                    false).Flip(FLIP.VERTICAL);
+			handle.Free();
 
-				Right.LoadRawTextureData(PrepareRenderImage(resizedImage));
-                Right.Apply();
-                Left.LoadRawTextureData(PrepareRenderImage(resizedImage2));
-                Left.Apply();
-            }            
+			var resizedImage = depthImg.Resize(depthImg.Width, depthImg.Height/2, INTER.CV_INTER_NN, false);
+			depthImg = depthImg.Flip(FLIP.VERTICAL);
+
+			var resizedImage2 = depthImg.Resize(depthImg.Width, depthImg.Height / 2, INTER.CV_INTER_NN, false);
+			resizedImage2 = resizedImage2.Flip(FLIP.VERTICAL);
+
+			Right.LoadRawTextureData(PrepareRenderImage(resizedImage));
+        	Right.Apply();
+        	Left.LoadRawTextureData(PrepareRenderImage(resizedImage2));
+       	 	Left.Apply();         
         }
         else
         {
@@ -173,16 +152,16 @@ public class CreateTwoTexture : MonoBehaviour
         if (format == StereoFormat.SideBySide)
         {
             Left = new Texture2D(liveCamTexture.width / 2, liveCamTexture.height, TextureFormat.RGB24, false);
-            Right = new Texture2D(liveCamTexture.width / 2, liveCamTexture.height, TextureFormat.RGB24, false);
+			Right = new Texture2D(liveCamTexture.width / 2, liveCamTexture.height, TextureFormat.RGB24, false);
 			_rectL = new Rect(0, 0, Left.width, Left.height);
 			_rectR = new Rect(Right.width, 0, Right.width*2, Right.height);
         }
         else if (format == StereoFormat.FramePacking)
         {
-            Left = new Texture2D(liveCamTexture.width, liveCamTexture.height / 2, TextureFormat.RGB24, false);
-            Right = new Texture2D(liveCamTexture.width, liveCamTexture.height / 2, TextureFormat.RGB24, false);
-            Complete = new Texture2D(liveCamTexture.width, liveCamTexture.height, TextureFormat.RGB24, false);
+			Left = new Texture2D(liveCamTexture.width, liveCamTexture.height / 2, TextureFormat.RGB24, false);
+			Right = new Texture2D(liveCamTexture.width, liveCamTexture.height / 2, TextureFormat.RGB24, false);
+			Complete = new Texture2D(liveCamTexture.width, liveCamTexture.height, TextureFormat.RGB24, false);
 			_rectC = new Rect(0, 0, Complete.width, Complete.height);
-        }
+		}
     }
 }
