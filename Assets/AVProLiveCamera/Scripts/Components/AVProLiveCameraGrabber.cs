@@ -1,4 +1,4 @@
-#define TEXTURETEST
+//#define TEXTURETEST
 using UnityEngine;
 using System.Collections;
 using System.Runtime.InteropServices;
@@ -36,8 +36,9 @@ public class AVProLiveCameraGrabber : MonoBehaviour
 			if (lastFrame != _lastFrame)
 			{
 				_lastFrame = lastFrame;
-				bool result = AVProLiveCameraPlugin.GetFrameAsColor32(_device.DeviceIndex, _framePointer, _frameWidth, _frameHeight);
-				if (result)
+				//bool result = AVProLiveCameraPlugin.GetFrameAsColor32(_device.DeviceIndex, _framePointer, _frameWidth, _frameHeight);
+				var test = AVProLiveCameraPlugin.GetLastFrameBuffered(_device.DeviceIndex);
+			//	if (result)
 				{
 #if TEXTURETEST
 					_testTexture.SetPixels32(_frameData);

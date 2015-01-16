@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 using System.Collections;
-
+using System.Drawing;
 using Emgu.CV;
 using Emgu.CV.Structure;
 using Emgu.CV.CvEnum;
@@ -91,31 +91,80 @@ public class CreateTwoTexture : MonoBehaviour
         }
     }
 
-    private byte[] PrepareRenderImage(Image<Rgb, byte> img)
+    private byte[] PrepareRenderImage(Image<Rgba, byte> img)
     {
         var linData = new byte[img.Data.Length];
         Buffer.BlockCopy(img.Data, 0, linData, 0, img.Data.Length);
         return linData;
     }
 
-    private void ConvertFP(Texture liveCamTexture)
-    {
-        if (Complete != null)
-        {
-            var depthImg = new Image<Rgba, byte>(liveCamTexture.width, liveCamTexture.height, 4*liveCamTexture.width,
-                AVProLiveCameraPlugin.GetLastFrameBuffered(_liveCamera.Device.DeviceIndex)).Convert<Rgb, byte>();
+	private static unsafe void YUV2RGBManaged(ref byte[] YUVData, ref byte[] RGBData, int width, int height)
+	{
+		fixed(byte* pRGBs = RGBData, pYUVs = YUVData)
+		{
+			for (int r = 0; r < height; r++)
+			{
+				byte* pRGB = pRGBs + r * width * 3;
+				byte* pYUV = pYUVs + r * width * 2;
+				
+				//process two pixels at a time
+				for (int c = 0; c < width; c += 2)
+				{
+					int C1 = pYUV[1] - 16;
+					int C2 = pYUV[3] - 16;
+					int D = pYUV[2] - 128;
+					int E = pYUV[0] - 128;
+					
+					int R1 = (298 * C1 + 409 * E + 128) >> 8;
+					int G1 = (298 * C1 - 100 * D - 208 * E + 128) >> 8;
+					int B1 = (298 * C1 + 516 * D + 128) >> 8;
+					
+					int R2 = (298 * C2 + 409 * E + 128) >> 8;
+					int G2 = (298 * C2 - 100 * D - 208 * E + 128) >> 8;
+					int B2 = (298 * C2 + 516 * D + 128) >> 8;
 
-            var resizedImage = depthImg.Resize(depthImg.Width, depthImg.Height/2, INTER.CV_INTER_NN, false);
-            depthImg = depthImg.Flip(FLIP.VERTICAL);
+					pRGB[0] = (byte)(R1 < 0 ? 0 : R1 > 255 ? 255 : R1);
+					pRGB[1] = (byte)(G1 < 0 ? 0 : G1 > 255 ? 255 : G1);
+					pRGB[2] = (byte)(B1 < 0 ? 0 : B1 > 255 ? 255 : B1);
+					
+					pRGB[3] = (byte)(R2 < 0 ? 0 : R2 > 255 ? 255 : R2);
+					pRGB[4] = (byte)(G2 < 0 ? 0 : G2 > 255 ? 255 : G2);
+					pRGB[5] = (byte)(B2 < 0 ? 0 : B2 > 255 ? 255 : B2);
+					
+					pRGB += 6;
+					pYUV += 4;
+				}
+			}
+		}
+	}
+	
+	private void ConvertFP(Texture liveCamTexture)
+	{
+		if (Complete != null)
+		{
+			var depthImgYUV = new Image<Rgba, byte>(1920, 1080, 4*1920,
+			                     AVProLiveCameraPlugin.GetLastFrameBuffered(_liveCamera.Device.DeviceIndex));
+			depthImgYUV = depthImgYUV.Flip(FLIP.VERTICAL);
 
-            var resizedImage2 = depthImg.Resize(depthImg.Width, depthImg.Height/2, INTER.CV_INTER_NN, false);
-            resizedImage2 = resizedImage2.Flip(FLIP.VERTICAL);
+			// left image
+			var depthImgLeft = depthImgYUV.Copy(new Rectangle(0, 0, 960, 1080));
 
-            Right.LoadRawTextureData(PrepareRenderImage(resizedImage));
-            Right.Apply();
+			var imgLeftDataYUV = PrepareRenderImage(depthImgLeft);
+			var imgLeftDataRGB = new byte[(int) (imgLeftDataYUV.Length * 1.5f)];
+			YUV2RGBManaged(ref imgLeftDataYUV, ref imgLeftDataRGB, 1920, 1080);
 
-            Left.LoadRawTextureData(PrepareRenderImage(resizedImage2));
-            Left.Apply();
+			Left.LoadRawTextureData(imgLeftDataRGB);
+			Left.Apply();
+
+			// right image
+			var depthImgRight = depthImgYUV.Copy(new Rectangle(960, 0, 960, 1080));
+
+			var imgRightDataYUV = PrepareRenderImage(depthImgRight);
+			var imgRightDataRGB = new byte[(int) (imgRightDataYUV.Length * 1.5f)];
+			YUV2RGBManaged(ref imgRightDataYUV, ref imgRightDataRGB, 1920, 1080);
+			
+			Right.LoadRawTextureData(imgRightDataRGB);
+			Right.Apply();
         }
         else
             CreateNewTexture(liveCamTexture, Format);
@@ -132,9 +181,9 @@ public class CreateTwoTexture : MonoBehaviour
         }
         else if (format == StereoFormat.FramePacking)
         {
-            Left = new Texture2D(liveCamTexture.width, liveCamTexture.height/2, TextureFormat.RGB24, false);
-            Right = new Texture2D(liveCamTexture.width, liveCamTexture.height/2, TextureFormat.RGB24, false);
-            Complete = new Texture2D(liveCamTexture.width, liveCamTexture.height, TextureFormat.RGB24, false);
+			Left = new Texture2D(liveCamTexture.width, liveCamTexture.height/2, TextureFormat.RGB24, false);
+			Right = new Texture2D(liveCamTexture.width, liveCamTexture.height/2, TextureFormat.RGB24, false);
+			Complete = new Texture2D(liveCamTexture.width, liveCamTexture.height, TextureFormat.RGB24, false);
         }
     }
 }
