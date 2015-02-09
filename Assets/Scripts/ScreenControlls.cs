@@ -1,9 +1,8 @@
 ﻿using UnityEngine;
-using System.Collections;
+using System.Collections.Generic;
 
 public class ScreenControlls : MonoBehaviour
 {
-
     private GameObject _screenL;
     private GameObject _screenR;
 
@@ -16,11 +15,17 @@ public class ScreenControlls : MonoBehaviour
     public float ScreenSize = 1;
     public float ScreenSizeIncement = 0.1f;
 
+    public float KeysPerSecond = 10;
+    private float _keyTimer = 0;
+
     private Vector3 _positionVectorScreenL;
     private Vector3 _positionVectorScreenR;
 
     private Vector3 _positionVector;
     private Vector3 _aspectRatio;
+
+    private List<GameObject> _cameras;
+    private Color _backgroundColor;
 
 	// Use this for initialization
 	void Start () {
@@ -32,53 +37,105 @@ public class ScreenControlls : MonoBehaviour
 
 	    _positionVector = this.transform.position;
 	    _aspectRatio = this.transform.localScale;
+
+
+        _backgroundColor = Color.black;
+        _cameras = new List<GameObject>();
+
+        //Add Cameras here!
+        _cameras.Add(GameObject.Find("/Main Camera"));
+        _cameras.Add(GameObject.Find("LeftEyeAnchor"));
+        _cameras.Add(GameObject.Find("RightEyeAnchor"));
+
+        SetCamerasBackground(_cameras, _backgroundColor);
 	}
 	
 	// Update is called once per frame
 	void Update ()
 	{
-	    if (Input.GetKeyDown(KeyCode.LeftArrow))
+	    if (Input.anyKey)
 	    {
-	        Hit -= HitIncrement;
+	        if (_keyTimer >= 1/KeysPerSecond)
+	        {
+	            //HIT
+	            if (Input.GetKey(KeyCode.LeftArrow))
+	            {
+	                Hit -= HitIncrement;
+	            }
+	            else if (Input.GetKey(KeyCode.RightArrow))
+	            {
+	                Hit += HitIncrement;
+	            }
+
+	            //Distance
+	            if (Input.GetKey(KeyCode.UpArrow))
+	            {
+	                ScreenDistance += ScreenDistanceIncrement;
+	            }
+	            else if (Input.GetKey(KeyCode.DownArrow))
+	            {
+	                ScreenDistance -= ScreenDistanceIncrement;
+	            }
+
+	            //SIZE
+	            if (Input.GetKey(KeyCode.PageUp))
+	            {
+	                ScreenSize += ScreenSizeIncement;
+	            }
+	            else if (Input.GetKey(KeyCode.PageDown))
+	            {
+	                ScreenSize -= ScreenSizeIncement;
+	            }
+
+	            //COLOR
+	            if (Input.GetKey(KeyCode.Alpha1))
+	            {
+	                _backgroundColor = Color.black;
+	            }
+	            else if (Input.GetKey(KeyCode.Alpha2))
+	            {
+	                _backgroundColor = Color.gray;
+	            }
+	            else if (Input.GetKey(KeyCode.Alpha3))
+	            {
+	                _backgroundColor = Color.white;
+	            }
+
+	            _positionVectorScreenL.x = Hit/2f;
+	            _positionVectorScreenL.y = 0;
+	            _positionVectorScreenL.z = 0;
+	            _screenL.transform.localPosition = _positionVectorScreenL;
+
+	            _positionVectorScreenR.x = -Hit/2f;
+	            _positionVectorScreenR.y = 0;
+	            _positionVectorScreenR.z = 0;
+	            _screenR.transform.localPosition = _positionVectorScreenR;
+
+	            _positionVector.x = 0;
+	            _positionVector.y = 0;
+	            _positionVector.z = ScreenDistance;
+	            this.transform.position = _positionVector;
+
+	            this.transform.localScale = _aspectRatio*ScreenSize;
+
+                SetCamerasBackground(_cameras, _backgroundColor);
+
+	            _keyTimer -= 1/KeysPerSecond;
+	        }
+	        _keyTimer += Time.deltaTime;
 	    }
-	    else if (Input.GetKeyDown(KeyCode.RightArrow))
+	    else
 	    {
-	        Hit += HitIncrement;
+	        _keyTimer = 1/KeysPerSecond;
 	    }
 
-	    if (Input.GetKeyDown(KeyCode.UpArrow))
-	    {
-	        ScreenDistance += ScreenDistanceIncrement;
-	    }
-        else if (Input.GetKeyDown(KeyCode.DownArrow))
-	    {
-	        ScreenDistance -= ScreenDistanceIncrement;
-	    }
-
-	    if (Input.GetKeyDown(KeyCode.PageUp))
-	    {
-	        ScreenSize += ScreenSizeIncement;
-	    }
-	    else if (Input.GetKeyDown(KeyCode.PageDown))
-	    {
-	        ScreenSize -= ScreenSizeIncement;
-	    }
-
-	    _positionVectorScreenL.x = Hit/2f;
-	    _positionVectorScreenL.y = 0;
-	    _positionVectorScreenL.z = 0;
-	    _screenL.transform.localPosition = _positionVectorScreenL;
-
-	    _positionVectorScreenR.x = -Hit/2f;
-        _positionVectorScreenR.y = 0;
-        _positionVectorScreenR.z = 0;
-        _screenR.transform.localPosition = _positionVectorScreenR;
-
-        _positionVector.x = 0;
-        _positionVector.y = 0;
-        _positionVector.z = ScreenDistance;
-	    this.transform.position = _positionVector;
-
-	    this.transform.localScale = _aspectRatio * ScreenSize;
 	}
+
+    private void SetCamerasBackground(List<GameObject> cameras, Color color)
+    {
+        foreach (GameObject cam in cameras)
+        {
+            cam.camera.backgroundColor = color;
+        }
+    }
 }
