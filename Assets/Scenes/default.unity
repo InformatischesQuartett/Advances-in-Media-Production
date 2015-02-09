@@ -420,6 +420,7 @@ MonoBehaviour:
   ScreenDistanceIncrement: 5
   ScreenSize: 1
   ScreenSizeIncement: .100000001
+  KeysPerSecond: 60
 --- !u!4 &1312062314
 Transform:
   m_ObjectHideFlags: 0
@@ -586,7 +587,7 @@ MonoBehaviour:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1588954073}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9b314e72e09aac24ea1d8ac469c46440, type: 3}
   m_Name: 
