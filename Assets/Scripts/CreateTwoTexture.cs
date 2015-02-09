@@ -91,13 +91,13 @@ public class CreateTwoTexture : MonoBehaviour
         }
     }
 
-    private byte[] PrepareRenderImage(Image<Rgba, byte> img)
+    private byte[] GetImageData(Image<Rgba, byte> img)
     {
         var linData = new byte[img.Data.Length];
         Buffer.BlockCopy(img.Data, 0, linData, 0, img.Data.Length);
         return linData;
     }
-
+	
 	private static unsafe void YUV2RGBManaged(ref byte[] YUVData, ref byte[] RGBData, int width, int height)
 	{
 		fixed(byte* pRGBs = RGBData, pYUVs = YUVData)
@@ -107,7 +107,7 @@ public class CreateTwoTexture : MonoBehaviour
 				byte* pRGB = pRGBs + r * width * 3;
 				byte* pYUV = pYUVs + r * width * 2;
 				
-				//process two pixels at a time
+				// process two pixels at a time
 				for (int c = 0; c < width; c += 2)
 				{
 					int C1 = pYUV[1] - 16;
@@ -124,14 +124,14 @@ public class CreateTwoTexture : MonoBehaviour
 					int B2 = (298 * C2 + 516 * D + 128) >> 8;
 
 					pRGB[2] = (byte)(R1 < 0 ? 0 : R1 > 255 ? 255 : R1);
-					pRGB[1] = (byte)(G1 < 0 ? 0 : G1 > 255 ? 255 : G1);
-					pRGB[0] = (byte)(B1 < 0 ? 0 : B1 > 255 ? 255 : B1);
+					pRGB[1] = (byte)(R1 < 0 ? 0 : R1 > 255 ? 255 : R1);
+					pRGB[0] = (byte)(R1 < 0 ? 0 : R1 > 255 ? 255 : R1);
 					
-					pRGB[5] = (byte)(R2 < 0 ? 0 : R2 > 255 ? 255 : R2);
-					pRGB[4] = (byte)(G2 < 0 ? 0 : G2 > 255 ? 255 : G2);
-					pRGB[3] = (byte)(B2 < 0 ? 0 : B2 > 255 ? 255 : B2);
+					//pRGB[5] = (byte) C2;//(byte)(R2 < 0 ? 0 : R2 > 255 ? 255 : R2);
+					//pRGB[4] = (byte) C2;//(byte)(G2 < 0 ? 0 : G2 > 255 ? 255 : G2);
+					//pRGB[3] = (byte) C2;//(byte)(B2 < 0 ? 0 : B2 > 255 ? 255 : B2);
 					
-					pRGB += 6;
+					pRGB += 3;
 					pYUV += 4;
 				}
 			}
@@ -151,38 +151,57 @@ public class CreateTwoTexture : MonoBehaviour
 
 			// left image
             var depthImgLeft = depthImgYUV.Copy(new Rectangle(0, 0, width / 2, height));
-		    var depthImgLeft2 = depthImgLeft.Convert<Rgba, short>();
+			depthImgLeft.Save("TestLeft.jpg");
 
-		    var test = new Image<Rgb, short>(width/2, height);
-		    var test2 = new Image<Rgb, short>(width/2, height);
-
-            var c1 = depthImgLeft2[1] - 16;
-            var c2 = depthImgLeft2[3] - 16;
-            var d = depthImgLeft2[2] - 128;
-            var e = depthImgLeft2[0] - 128;
-
-            test[0] = (298 * c1 + 409 * e + 128) / 256;
-            test[1] = (298 * c1 - 100 * d - 208 * e + 128) / 256;
-            test[2] = (298 * c1 + 516 * d + 128) / 256;
-
-            test2[0] = (298 * c2 + 409 * e + 128) / 256;
-            test2[1] = (298 * c2 - 100 * d - 208 * e + 128) / 256;
-            test2[2] = (298 * c2 + 516 * d + 128) / 256;
-
-		    test = test.Resize(width, height, INTER.CV_INTER_LINEAR);
-
-            test.Convert<Rgb, byte>().Save("TestRGB1.jpg");
-            test2.Convert<Rgb, byte>().Save("TestRGB2.jpg");
-
-			var imgLeftDataYUV = PrepareRenderImage(depthImgLeft);
+			var imgLeftDataYUV = GetImageData(depthImgLeft);
 			var imgLeftDataRGB = new byte[(int) (imgLeftDataYUV.Length * 1.5f)];
 			YUV2RGBManaged(ref imgLeftDataYUV, ref imgLeftDataRGB, width, height);
 
-		    fixed (byte* dataptr = imgLeftDataRGB)
-		    {
-		        var test123 = new Image<Rgb, byte>(width, height, 3 * width, new IntPtr(dataptr));
-                test123.Save("TestOrg.jpg");
-		    }
+			fixed (byte* dataptr = imgLeftDataRGB)
+			{
+				var testRGB = new Image<Rgb, byte>(width, height, 3 * width, new IntPtr(dataptr));
+				testRGB.Save("TestLeftRGB.jpg");
+			}
+
+		    
+			var depthImgLeft2 = depthImgLeft.Convert<Rgba, short>();
+
+		    var test = new Image<Rgb, byte>(width/2, height);
+		    var test2 = new Image<Rgb, byte>(width/2, height);
+
+            var c1 = depthImgLeft[1] - 16;
+            var c2 = depthImgLeft[3] - 16;
+            var d = depthImgLeft[2] - 128;
+            var e = depthImgLeft[0] - 128;
+
+			var r1 = (298 * c1 + 409 * e + 128) / 256;
+			var r2 = (298 * c1 - 100 * d - 208 * e + 128) / 256;
+			var r3 = (298 * c1 + 516 * d + 128) / 256;
+
+
+
+			test[0] = r1;
+			test[1] = r2;
+			test[2] = r3;
+
+			test[0] = test[0].ThresholdToZero(new Gray(0));
+			test[0] = test[0].ThresholdToZeroInv(new Gray(255));
+
+			test[1] = test[1].ThresholdToZero(new Gray(0));
+			test[1] = test[1].ThresholdToZeroInv(new Gray(255));
+
+			test[2] = test[2].ThresholdToZero(new Gray(0));
+			test[2] = test[2].ThresholdToZeroInv(new Gray(255));
+
+			test2[0] = c2;//(298 * c2 + 409 * e + 128) / 256;
+			test2[1] = c2;//(298 * c2 - 100 * d - 208 * e + 128) / 256;
+			test2[2] = c2;//(298 * c2 + 516 * d + 128) / 256;
+
+		    //test = test.Resize(width, height, INTER.CV_INTER_LINEAR);
+			//test2 = test2.Resize(width, height, INTER.CV_INTER_LINEAR);
+
+            test.Convert<Rgb, byte>().Save("TestRGB1.jpg");
+            //test2.Convert<Rgb, byte>().Save("TestRGB2.jpg");
 
 			Left.LoadRawTextureData(imgLeftDataRGB);
 			Left.Apply();
@@ -190,7 +209,7 @@ public class CreateTwoTexture : MonoBehaviour
 			// right image
 		    var depthImgRight = depthImgYUV.Copy(new Rectangle(width/2, 0, width/2, height));
 
-			var imgRightDataYUV = PrepareRenderImage(depthImgRight);
+			var imgRightDataYUV = GetImageData(depthImgRight);
 			var imgRightDataRGB = new byte[(int) (imgRightDataYUV.Length * 1.5f)];
 			YUV2RGBManaged(ref imgRightDataYUV, ref imgRightDataRGB, width, height);
 			
