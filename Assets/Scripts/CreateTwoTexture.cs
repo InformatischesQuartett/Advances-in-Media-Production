@@ -38,7 +38,7 @@ public class CreateTwoTexture : MonoBehaviour
         CreateNewTexture(_liveCamera.OutputTexture, Format);
     }
 
-    /*private void OnGUI()
+    private void OnGUI()
     {
         if (_liveCamera.OutputTexture != null && Left != null && Right != null)
         {
@@ -46,7 +46,7 @@ public class CreateTwoTexture : MonoBehaviour
             GUI.DrawTexture(new Rect(150, 200, 200, 200), Left, ScaleMode.ScaleToFit, false);
             GUI.DrawTexture(new Rect(350, 200, 200, 200), Right, ScaleMode.ScaleToFit, false);
         }
-    }*/
+    }
 
     private void Update()
     {
@@ -114,10 +114,10 @@ public class CreateTwoTexture : MonoBehaviour
 					int C2 = pYUV[3] - 16;
 					int D = pYUV[2] - 128;
 					int E = pYUV[0] - 128;
-					
-					int R1 = (298 * C1 + 409 * E + 128) >> 8;
-					int G1 = (298 * C1 - 100 * D - 208 * E + 128) >> 8;
-					int B1 = (298 * C1 + 516 * D + 128) >> 8;
+
+				    int R1 = (298*C1 + 409*E + 128) >> 8;
+				    int G1 = (298*C1 - 100*D - 208*E + 128) >> 8;
+				    int B1 = (298*C1 + 516*D + 128) >> 8;
 					
 					int R2 = (298 * C2 + 409 * E + 128) >> 8;
 					int G2 = (298 * C2 - 100 * D - 208 * E + 128) >> 8;
@@ -138,30 +138,62 @@ public class CreateTwoTexture : MonoBehaviour
 		}
 	}
 	
-	private void ConvertFP(Texture liveCamTexture)
+	private unsafe void ConvertFP(Texture liveCamTexture)
 	{
 		if (Complete != null)
 		{
-			var depthImgYUV = new Image<Rgba, byte>(1920, 1080, 4*1920,
+		    var width = liveCamTexture.width;
+		    var height = liveCamTexture.height;
+
+            var depthImgYUV = new Image<Rgba, byte>(width, height, 4 * width,
 			                     AVProLiveCameraPlugin.GetLastFrameBuffered(_liveCamera.Device.DeviceIndex));
 			depthImgYUV = depthImgYUV.Flip(FLIP.VERTICAL);
 
 			// left image
-			var depthImgLeft = depthImgYUV.Copy(new Rectangle(0, 0, 960, 1080));
+            var depthImgLeft = depthImgYUV.Copy(new Rectangle(0, 0, width / 2, height));
+		    var depthImgLeft2 = depthImgLeft.Convert<Rgba, short>();
+
+		    var test = new Image<Rgb, short>(width/2, height);
+		    var test2 = new Image<Rgb, short>(width/2, height);
+
+            var c1 = depthImgLeft2[1] - 16;
+            var c2 = depthImgLeft2[3] - 16;
+            var d = depthImgLeft2[2] - 128;
+            var e = depthImgLeft2[0] - 128;
+
+            test[0] = (298 * c1 + 409 * e + 128) / 256;
+            test[1] = (298 * c1 - 100 * d - 208 * e + 128) / 256;
+            test[2] = (298 * c1 + 516 * d + 128) / 256;
+
+            test2[0] = (298 * c2 + 409 * e + 128) / 256;
+            test2[1] = (298 * c2 - 100 * d - 208 * e + 128) / 256;
+            test2[2] = (298 * c2 + 516 * d + 128) / 256;
+
+		    test = test.Resize(width, height, INTER.CV_INTER_LINEAR);
+
+            test.Convert<Rgb, byte>().Save("TestRGB1.jpg");
+            test2.Convert<Rgb, byte>().Save("TestRGB2.jpg");
 
 			var imgLeftDataYUV = PrepareRenderImage(depthImgLeft);
 			var imgLeftDataRGB = new byte[(int) (imgLeftDataYUV.Length * 1.5f)];
-			YUV2RGBManaged(ref imgLeftDataYUV, ref imgLeftDataRGB, 1920, 1080);
+            YUV2RGBManaged(ref imgLeftDataYUV, ref imgLeftDataRGB, width, height);
+
+		    fixed (byte* dataptr = imgLeftDataRGB)
+		    {
+		        var test123 = new Image<Rgb, byte>(width, height, 3 * width, new IntPtr(dataptr));
+                test123.Save("TestOrg.jpg");
+		    }
 
 			Left.LoadRawTextureData(imgLeftDataRGB);
 			Left.Apply();
 
 			// right image
-			var depthImgRight = depthImgYUV.Copy(new Rectangle(960, 0, 960, 1080));
+		    var depthImgRight =
+		        depthImgYUV.Copy(new Rectangle(width/2, 0, width/2, height));
 
 			var imgRightDataYUV = PrepareRenderImage(depthImgRight);
 			var imgRightDataRGB = new byte[(int) (imgRightDataYUV.Length * 1.5f)];
-			YUV2RGBManaged(ref imgRightDataYUV, ref imgRightDataRGB, 1920, 1080);
+            YUV2RGBManaged(ref imgRightDataYUV, ref imgRightDataRGB, width, height);
 			
 			Right.LoadRawTextureData(imgRightDataRGB);
 			Right.Apply();
