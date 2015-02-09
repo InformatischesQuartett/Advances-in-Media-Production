@@ -123,13 +123,13 @@ public class CreateTwoTexture : MonoBehaviour
 					int G2 = (298 * C2 - 100 * D - 208 * E + 128) >> 8;
 					int B2 = (298 * C2 + 516 * D + 128) >> 8;
 
-					pRGB[0] = (byte)(R1 < 0 ? 0 : R1 > 255 ? 255 : R1);
+					pRGB[2] = (byte)(R1 < 0 ? 0 : R1 > 255 ? 255 : R1);
 					pRGB[1] = (byte)(G1 < 0 ? 0 : G1 > 255 ? 255 : G1);
-					pRGB[2] = (byte)(B1 < 0 ? 0 : B1 > 255 ? 255 : B1);
+					pRGB[0] = (byte)(B1 < 0 ? 0 : B1 > 255 ? 255 : B1);
 					
-					pRGB[3] = (byte)(R2 < 0 ? 0 : R2 > 255 ? 255 : R2);
+					pRGB[5] = (byte)(R2 < 0 ? 0 : R2 > 255 ? 255 : R2);
 					pRGB[4] = (byte)(G2 < 0 ? 0 : G2 > 255 ? 255 : G2);
-					pRGB[5] = (byte)(B2 < 0 ? 0 : B2 > 255 ? 255 : B2);
+					pRGB[3] = (byte)(B2 < 0 ? 0 : B2 > 255 ? 255 : B2);
 					
 					pRGB += 6;
 					pYUV += 4;
