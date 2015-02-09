@@ -142,26 +142,29 @@ public class CreateTwoTexture : MonoBehaviour
 	{
 		if (Complete != null)
 		{
-			var depthImgYUV = new Image<Rgba, byte>(1920, 1080, 4*1920,
+			var width = liveCamTexture.width;
+			var height = liveCamTexture.height;
+
+			var depthImgYUV = new Image<Rgba, byte>(width, height, 4*width,
 			                     AVProLiveCameraPlugin.GetLastFrameBuffered(_liveCamera.Device.DeviceIndex));
 			depthImgYUV = depthImgYUV.Flip(FLIP.VERTICAL);
 
 			// left image
-			var depthImgLeft = depthImgYUV.Copy(new Rectangle(0, 0, 960, 1080));
+			var depthImgLeft = depthImgYUV.Copy(new Rectangle(0, 0, width/2, height));
 
 			var imgLeftDataYUV = PrepareRenderImage(depthImgLeft);
 			var imgLeftDataRGB = new byte[(int) (imgLeftDataYUV.Length * 1.5f)];
-			YUV2RGBManaged(ref imgLeftDataYUV, ref imgLeftDataRGB, 1920, 1080);
+			YUV2RGBManaged(ref imgLeftDataYUV, ref imgLeftDataRGB, width, height);
 
 			Left.LoadRawTextureData(imgLeftDataRGB);
 			Left.Apply();
 
 			// right image
-			var depthImgRight = depthImgYUV.Copy(new Rectangle(960, 0, 960, 1080));
+			var depthImgRight = depthImgYUV.Copy(new Rectangle(width/2, 0, width/2, height));
 
 			var imgRightDataYUV = PrepareRenderImage(depthImgRight);
 			var imgRightDataRGB = new byte[(int) (imgRightDataYUV.Length * 1.5f)];
-			YUV2RGBManaged(ref imgRightDataYUV, ref imgRightDataRGB, 1920, 1080);
+			YUV2RGBManaged(ref imgRightDataYUV, ref imgRightDataRGB, width, height);
 			
 			Right.LoadRawTextureData(imgRightDataRGB);
 			Right.Apply();
