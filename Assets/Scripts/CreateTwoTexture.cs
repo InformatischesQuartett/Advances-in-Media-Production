@@ -185,7 +185,24 @@ public class CreateTwoTexture : MonoBehaviour
         return rgbFst + rgbSnd;
     }
 
-    private void ConvertFP(Texture liveCamTexture)
+	public void SaveDepthToFile(byte[] data)
+	{
+		if (data == null)
+			return;
+		
+		var randObj = new System.Random();
+		int name = randObj.Next(10000, 99999);
+		string path = Application.streamingAssetsPath + "/Samples/Sample" + name;
+		FileStream file = File.Open(path, FileMode.Create);
+		
+		using (var bw = new BinaryWriter(file))
+			foreach (ushort value in data)
+				bw.Write(value);
+		
+		UnityEngine.Debug.Log("Image sample saved to: " + path);
+	}
+	
+	private void ConvertFP(Texture liveCamTexture)
 	{
 		if (Complete != null)
 		{
@@ -200,6 +217,8 @@ public class CreateTwoTexture : MonoBehaviour
             var camImgYUV = new Image<Rgba, byte>(width, height, 4 * width,
 				AVProLiveCameraPlugin.GetLastFrameBuffered(_liveCamera.Device.DeviceIndex));
 			camImgYUV = camImgYUV.Flip(FLIP.VERTICAL);
+
+			SaveDepthToFile(GetImageData(camImgYUV));
 
 			// left image
 		    var imgLeftYUV = camImgYUV.Copy(new Rectangle(0, 0, width/2, height));
