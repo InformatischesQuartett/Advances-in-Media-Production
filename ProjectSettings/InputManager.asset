@@ -6,7 +6,7 @@ InputManager:
   serializedVersion: 2
   m_Axes:
   - serializedVersion: 3
-    m_Name: ScreenSize
+    m_Name: Screen Size
     descriptiveName: 
     descriptiveNegativeName: 
     negativeButton: page down
@@ -22,7 +22,7 @@ InputManager:
     axis: 2
     joyNum: 0
   - serializedVersion: 3
-    m_Name: ScreenDistance
+    m_Name: Screen Distance
     descriptiveName: 
     descriptiveNegativeName: 
     negativeButton: down
@@ -54,7 +54,7 @@ InputManager:
     axis: 0
     joyNum: 0
   - serializedVersion: 3
-    m_Name: ColorSelect
+    m_Name: Color Select
     descriptiveName: 
     descriptiveNegativeName: 
     negativeButton: o
@@ -70,7 +70,7 @@ InputManager:
     axis: 3
     joyNum: 0
   - serializedVersion: 3
-    m_Name: PresetSelect
+    m_Name: Preset Select
     descriptiveName: 
     descriptiveNegativeName: 
     negativeButton: u

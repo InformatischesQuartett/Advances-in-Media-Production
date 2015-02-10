@@ -73,20 +73,20 @@ public class ScreenControlls : MonoBehaviour
                 Hit += Input.GetAxis("HIT");
 
 	            //Distance
-	            ScreenDistance += Input.GetAxis("ScreenDistance");
+	            ScreenDistance += Input.GetAxis("Screen Distance");
 	            
                 //SIZE
-	            ScreenSize += Input.GetAxis("ScreenSize");
+	            ScreenSize += Input.GetAxis("Screen Size");
 
 	            //COLOR
-	            if (Input.GetAxis("ColorSelect") > 0)
+	            if (Input.GetAxis("Color Select") > 0)
 	            {
 	                if (_currentColorIndex == _avalavailableColors.Count - 1)
 	                    _currentColorIndex = 0;
 	                else
 	                    _currentColorIndex++;
 	            }
-	            else if (Input.GetAxis("ColorSelect") < 0)
+	            else if (Input.GetAxis("Color Select") < 0)
 	            {
 	                if (_currentColorIndex == 0)
 	                    _currentColorIndex = _avalavailableColors.Count - 1;
