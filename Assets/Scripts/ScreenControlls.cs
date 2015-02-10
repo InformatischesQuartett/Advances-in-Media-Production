@@ -15,7 +15,7 @@ public class ScreenControlls : MonoBehaviour
     public float ScreenSize = 1;
     public float ScreenSizeIncement = 0.1f;
 
-    public float KeysPerSecond = 10;
+    public float KeysPerSecond = 1;
     private float _keyTimer = 0;
 
     private Vector3 _positionVectorScreenL;
@@ -25,7 +25,9 @@ public class ScreenControlls : MonoBehaviour
     private Vector3 _aspectRatio;
 
     private List<GameObject> _cameras;
-    private Color _backgroundColor;
+
+    private List<Color> _avalavailableColors;
+    private int _currentColorIndex;
 
 	// Use this for initialization
 	void Start () {
@@ -38,67 +40,58 @@ public class ScreenControlls : MonoBehaviour
 	    _positionVector = this.transform.position;
 	    _aspectRatio = this.transform.localScale;
 
-
-        _backgroundColor = Color.black;
         _cameras = new List<GameObject>();
+        _avalavailableColors = new List<Color>();
 
         //Add Cameras here!
         _cameras.Add(GameObject.Find("/Main Camera"));
         _cameras.Add(GameObject.Find("LeftEyeAnchor"));
         _cameras.Add(GameObject.Find("RightEyeAnchor"));
 
-        SetCamerasBackground(_cameras, _backgroundColor);
+        _avalavailableColors.Add(Color.white);
+        _avalavailableColors.Add(Color.black);
+        _avalavailableColors.Add(Color.red);
+        _avalavailableColors.Add(Color.black);
+        _avalavailableColors.Add(Color.white);
+        _avalavailableColors.Add(Color.black);
+        _avalavailableColors.Add(Color.green);
+        _avalavailableColors.Add(Color.black);
+        _avalavailableColors.Add(Color.white);
+        _avalavailableColors.Add(Color.black);
+
+        SetCamerasBackground(_cameras, _avalavailableColors[_currentColorIndex]);
 	}
 	
 	// Update is called once per frame
 	void Update ()
 	{
-	    if (Input.anyKey)
+        if (Input.anyKey)
 	    {
 	        if (_keyTimer >= 1/KeysPerSecond)
 	        {
 	            //HIT
-	            if (Input.GetKey(KeyCode.LeftArrow))
-	            {
-	                Hit -= HitIncrement;
-	            }
-	            else if (Input.GetKey(KeyCode.RightArrow))
-	            {
-	                Hit += HitIncrement;
-	            }
+                Hit += Input.GetAxis("HIT");
 
 	            //Distance
-	            if (Input.GetKey(KeyCode.UpArrow))
-	            {
-	                ScreenDistance += ScreenDistanceIncrement;
-	            }
-	            else if (Input.GetKey(KeyCode.DownArrow))
-	            {
-	                ScreenDistance -= ScreenDistanceIncrement;
-	            }
-
-	            //SIZE
-	            if (Input.GetKey(KeyCode.PageUp))
-	            {
-	                ScreenSize += ScreenSizeIncement;
-	            }
-	            else if (Input.GetKey(KeyCode.PageDown))
-	            {
-	                ScreenSize -= ScreenSizeIncement;
-	            }
+	            ScreenDistance += Input.GetAxis("ScreenDistance");
+	            
+                //SIZE
+	            ScreenSize += Input.GetAxis("ScreenSize");
 
 	            //COLOR
-	            if (Input.GetKey(KeyCode.Alpha1))
+	            if (Input.GetAxis("ColorSelect") > 0)
 	            {
-	                _backgroundColor = Color.black;
+	                if (_currentColorIndex == _avalavailableColors.Count - 1)
+	                    _currentColorIndex = 0;
+	                else
+	                    _currentColorIndex++;
 	            }
-	            else if (Input.GetKey(KeyCode.Alpha2))
+	            else if (Input.GetAxis("ColorSelect") < 0)
 	            {
-	                _backgroundColor = Color.gray;
-	            }
-	            else if (Input.GetKey(KeyCode.Alpha3))
-	            {
-	                _backgroundColor = Color.white;
+	                if (_currentColorIndex == 0)
+	                    _currentColorIndex = _avalavailableColors.Count - 1;
+	                else
+	                    _currentColorIndex--;
 	            }
 
 	            _positionVectorScreenL.x = Hit/2f;
@@ -118,7 +111,7 @@ public class ScreenControlls : MonoBehaviour
 
 	            this.transform.localScale = _aspectRatio*ScreenSize;
 
-                SetCamerasBackground(_cameras, _backgroundColor);
+                SetCamerasBackground(_cameras, _avalavailableColors[_currentColorIndex]);
 
 	            _keyTimer -= 1/KeysPerSecond;
 	        }
