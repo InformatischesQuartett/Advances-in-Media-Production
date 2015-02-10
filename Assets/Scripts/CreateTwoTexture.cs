@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEngine;
 using System.Collections;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Text;
@@ -153,6 +154,9 @@ public class CreateTwoTexture : MonoBehaviour
 
     private Image<Rgb, byte> ConvertYUV2RGB(Image<Rgba, byte> input, int width, int height)
     {
+        var watch = new Stopwatch();
+        watch.Start();
+
         var yuvImg = input.Convert<Rgba, float>();
 
         var c1 = yuvImg[1] - 16;
@@ -160,11 +164,15 @@ public class CreateTwoTexture : MonoBehaviour
         var d = yuvImg[2] - 128;
         var e = yuvImg[0] - 128;
 
+        UnityEngine.Debug.Log("1. " + watch.ElapsedMilliseconds);
+
         // first part of image
         var rgbFst = new Image<Rgb, byte>(width / 2, height);
 
         var r1 = (((298 * c1 + 409 * e + 128) / 256) - 0.5f);
         r1 = r1.ThresholdToZero(new Gray(0)).ThresholdTrunc(new Gray(255));
+
+        UnityEngine.Debug.Log("2. " + watch.ElapsedMilliseconds);
 
         var g1 = (((298 * c1 - 100 * d - 208 * e + 128) / 256) - 0.5f);
         g1 = g1.ThresholdToZero(new Gray(0)).ThresholdTrunc(new Gray(255));
@@ -172,11 +180,17 @@ public class CreateTwoTexture : MonoBehaviour
         var b1 = (((298 * c1 + 516 * d + 128) / 256) - 0.5f);
         b1 = b1.ThresholdToZero(new Gray(0)).ThresholdTrunc(new Gray(255));
 
+        UnityEngine.Debug.Log("3. " + watch.ElapsedMilliseconds);
+
         rgbFst[0] = r1.Convert<Gray, byte>();
         rgbFst[1] = g1.Convert<Gray, byte>();
         rgbFst[2] = b1.Convert<Gray, byte>();
 
+        UnityEngine.Debug.Log("4. " + watch.ElapsedMilliseconds);
+
         rgbFst = rgbFst.Resize(width, height, INTER.CV_INTER_NN);
+
+        UnityEngine.Debug.Log("5. " + watch.ElapsedMilliseconds);
 
         // second part of image
         var rgbSnd = new Image<Rgb, byte>(width / 2, height);
@@ -196,9 +210,13 @@ public class CreateTwoTexture : MonoBehaviour
 
         rgbSnd = rgbSnd.Resize(width, height, INTER.CV_INTER_NN);
 
+        UnityEngine.Debug.Log("6. " + watch.ElapsedMilliseconds);
+
         // filter
         rgbFst = rgbFst.And(_filterLeft);
         rgbSnd = rgbSnd.And(_filterRight);
+
+        UnityEngine.Debug.Log("7. " + watch.ElapsedMilliseconds);
 
         return rgbFst + rgbSnd;
     }
