@@ -28,7 +28,9 @@ public class CreateTwoTexture : MonoBehaviour
     private Image<Rgb, byte> _filterLeft;
     private Image<Rgb, byte> _filterRight;
 
-	private const bool forceFullHD = true;
+	private const bool ForceFullHd = true;
+    private const bool DemoMode = true;
+    private byte[] _sampleData;
 
     public enum StereoFormat
     {
@@ -185,7 +187,7 @@ public class CreateTwoTexture : MonoBehaviour
         return rgbFst + rgbSnd;
     }
 
-	public void SaveDepthToFile(byte[] data)
+	public void SaveSampleToFile(byte[] data)
 	{
 		if (data == null)
 			return;
@@ -196,31 +198,62 @@ public class CreateTwoTexture : MonoBehaviour
 		FileStream file = File.Open(path, FileMode.Create);
 		
 		using (var bw = new BinaryWriter(file))
-			foreach (ushort value in data)
+			foreach (byte value in data)
 				bw.Write(value);
 		
 		UnityEngine.Debug.Log("Image sample saved to: " + path);
 	}
-	
-	private void ConvertFP(Texture liveCamTexture)
+
+    private byte[] ReadSampleFromFile(string id)
+    {
+        string path = Application.streamingAssetsPath + "/Samples/Sample" + id;
+        FileStream file = File.Open(path, FileMode.Open);
+
+        using (var br = new BinaryReader(file))
+        {
+            long valueCt = br.BaseStream.Length / sizeof(byte);
+            var readArr = new byte[valueCt];
+
+            for (int x = 0; x < valueCt; x++)
+                readArr[x] = br.ReadByte();
+
+            return readArr;
+        }
+    }
+
+	private unsafe void ConvertFP(Texture liveCamTexture)
 	{
 		if (Complete != null)
 		{
 			var width = liveCamTexture.width;
 			var height = liveCamTexture.height;
 
-			if (forceFullHD) {
+            //FixDepthFromFile();
+
+			if (ForceFullHd) {
 		    	width = 1920;
 		    	height = 1080;
 			}
 
-            var camImgYUV = new Image<Rgba, byte>(width, height, 4 * width,
-				AVProLiveCameraPlugin.GetLastFrameBuffered(_liveCamera.Device.DeviceIndex));
-			camImgYUV = camImgYUV.Flip(FLIP.VERTICAL);
+		   
 
-			SaveDepthToFile(GetImageData(camImgYUV));
+		    Image<Rgba, byte> camImgYUV;
 
-			// left image
+		    if (!DemoMode)
+		    {
+		        camImgYUV = new Image<Rgba, byte>(width, height, 4*width,
+		            AVProLiveCameraPlugin.GetLastFrameBuffered(_liveCamera.Device.DeviceIndex));
+		        camImgYUV = camImgYUV.Flip(FLIP.VERTICAL);
+		    }
+		    else
+		    {
+		        fixed (byte* ptr = _sampleData)
+		        {
+		            camImgYUV = new Image<Rgba, byte>(width, height, 4*width, new IntPtr(ptr));
+		        }
+		    }
+
+		    // left image
 		    var imgLeftYUV = camImgYUV.Copy(new Rectangle(0, 0, width/2, height));
 		    var imgLeftRGB = GetImageData(ConvertYUV2RGB(imgLeftYUV, width, height));
 
@@ -256,7 +289,7 @@ public class CreateTwoTexture : MonoBehaviour
             // create filter
             var blackWhite = new Image<Gray, byte>(2, 1, new Gray(0));
 
-			if (!forceFullHD) {
+			if (!ForceFullHd) {
 	            _filterLeft = new Image<Rgb, byte>(liveCamTexture.width, liveCamTexture.height);
 	            _filterRight = new Image<Rgb, byte>(liveCamTexture.width, liveCamTexture.height);
 			} else {
@@ -270,6 +303,11 @@ public class CreateTwoTexture : MonoBehaviour
             blackWhite.Data[0, 0, 0] = 0;
             blackWhite.Data[0, 1, 0] = 255;
             CvInvoke.cvRepeat(blackWhite.Convert<Rgb, byte>(), _filterRight);
+
+            if (DemoMode)
+            {
+                _sampleData = ReadSampleFromFile("16520");
+            }
         }
     }
 }
