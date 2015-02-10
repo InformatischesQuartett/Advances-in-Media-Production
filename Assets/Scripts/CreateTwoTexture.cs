@@ -28,6 +28,8 @@ public class CreateTwoTexture : MonoBehaviour
     private Image<Rgb, byte> _filterLeft;
     private Image<Rgb, byte> _filterRight;
 
+	private const bool forceFullHD = true;
+
     public enum StereoFormat
     {
         FramePacking,
@@ -112,46 +114,6 @@ public class CreateTwoTexture : MonoBehaviour
         return linData;
     }
 
-    private static unsafe void YUV2RGBManaged(ref byte[] YUVData, ref byte[] RGBData, int width, int height)
-    {
-        fixed (byte* pRGBs = RGBData, pYUVs = YUVData)
-        {
-            for (int r = 0; r < height; r++)
-            {
-                byte* pRGB = pRGBs + r*width*3;
-                byte* pYUV = pYUVs + r*width*2;
-
-                // process two pixels at a time
-                for (int c = 0; c < width; c += 2)
-                {
-                    int C1 = pYUV[1] - 16;
-                    int C2 = pYUV[3] - 16;
-                    int D = pYUV[2] - 128;
-                    int E = pYUV[0] - 128;
-
-                    int R1 = (298*C1 + 409*E + 128) >> 8;
-                    int G1 = (298*C1 - 100*D - 208*E + 128) >> 8;
-                    int B1 = (298*C1 + 516*D + 128) >> 8;
-
-                    int R2 = (298*C2 + 409*E + 128) >> 8;
-                    int G2 = (298*C2 - 100*D - 208*E + 128) >> 8;
-                    int B2 = (298*C2 + 516*D + 128) >> 8;
-
-                    pRGB[2] = (byte) (R1 < 0 ? 0 : R1 > 255 ? 255 : R1);
-                    pRGB[1] = (byte) (G1 < 0 ? 0 : G1 > 255 ? 255 : G1);
-                    pRGB[0] = (byte) (B1 < 0 ? 0 : B1 > 255 ? 255 : B1);
-
-                    pRGB[5] = (byte) (R2 < 0 ? 0 : R2 > 255 ? 255 : R2);
-                    pRGB[4] = (byte) (G2 < 0 ? 0 : G2 > 255 ? 255 : G2);
-                    pRGB[3] = (byte) (B2 < 0 ? 0 : B2 > 255 ? 255 : B2);
-
-                    pRGB += 6;
-                    pYUV += 4;
-                }
-            }
-        }
-    }
-
     private Image<Rgb, byte> ConvertYUV2RGB(Image<Rgba, byte> input, int width, int height)
     {
         var watch = new Stopwatch();
@@ -164,7 +126,7 @@ public class CreateTwoTexture : MonoBehaviour
         var d = yuvImg[2] - 128;
         var e = yuvImg[0] - 128;
 
-        UnityEngine.Debug.Log("1. " + watch.ElapsedMilliseconds);
+       // UnityEngine.Debug.Log("1. " + watch.ElapsedMilliseconds);
 
         // first part of image
         var rgbFst = new Image<Rgb, byte>(width / 2, height);
@@ -172,7 +134,7 @@ public class CreateTwoTexture : MonoBehaviour
         var r1 = (((298 * c1 + 409 * e + 128) / 256) - 0.5f);
         r1 = r1.ThresholdToZero(new Gray(0)).ThresholdTrunc(new Gray(255));
 
-        UnityEngine.Debug.Log("2. " + watch.ElapsedMilliseconds);
+      //  UnityEngine.Debug.Log("2. " + watch.ElapsedMilliseconds);
 
         var g1 = (((298 * c1 - 100 * d - 208 * e + 128) / 256) - 0.5f);
         g1 = g1.ThresholdToZero(new Gray(0)).ThresholdTrunc(new Gray(255));
@@ -180,17 +142,17 @@ public class CreateTwoTexture : MonoBehaviour
         var b1 = (((298 * c1 + 516 * d + 128) / 256) - 0.5f);
         b1 = b1.ThresholdToZero(new Gray(0)).ThresholdTrunc(new Gray(255));
 
-        UnityEngine.Debug.Log("3. " + watch.ElapsedMilliseconds);
+      //  UnityEngine.Debug.Log("3. " + watch.ElapsedMilliseconds);
 
-        rgbFst[0] = r1.Convert<Gray, byte>();
+        rgbFst[2] = r1.Convert<Gray, byte>();
         rgbFst[1] = g1.Convert<Gray, byte>();
-        rgbFst[2] = b1.Convert<Gray, byte>();
+        rgbFst[0] = b1.Convert<Gray, byte>();
 
-        UnityEngine.Debug.Log("4. " + watch.ElapsedMilliseconds);
+      //  UnityEngine.Debug.Log("4. " + watch.ElapsedMilliseconds);
 
         rgbFst = rgbFst.Resize(width, height, INTER.CV_INTER_NN);
 
-        UnityEngine.Debug.Log("5. " + watch.ElapsedMilliseconds);
+      //  UnityEngine.Debug.Log("5. " + watch.ElapsedMilliseconds);
 
         // second part of image
         var rgbSnd = new Image<Rgb, byte>(width / 2, height);
@@ -204,19 +166,21 @@ public class CreateTwoTexture : MonoBehaviour
         var b2 = (((298 * c2 + 516 * d + 128) / 256) - 0.5f);
         b2 = b2.ThresholdToZero(new Gray(0)).ThresholdTrunc(new Gray(255));
 
-        rgbSnd[0] = r2.Convert<Gray, byte>();
+        rgbSnd[2] = r2.Convert<Gray, byte>();
         rgbSnd[1] = g2.Convert<Gray, byte>();
-        rgbSnd[2] = b2.Convert<Gray, byte>();
+        rgbSnd[0] = b2.Convert<Gray, byte>();
 
         rgbSnd = rgbSnd.Resize(width, height, INTER.CV_INTER_NN);
 
-        UnityEngine.Debug.Log("6. " + watch.ElapsedMilliseconds);
+      //  UnityEngine.Debug.Log("6. " + watch.ElapsedMilliseconds);
 
         // filter
         rgbFst = rgbFst.And(_filterLeft);
         rgbSnd = rgbSnd.And(_filterRight);
 
-        UnityEngine.Debug.Log("7. " + watch.ElapsedMilliseconds);
+
+
+      //  UnityEngine.Debug.Log("7. " + watch.ElapsedMilliseconds);
 
         return rgbFst + rgbSnd;
     }
@@ -225,8 +189,13 @@ public class CreateTwoTexture : MonoBehaviour
 	{
 		if (Complete != null)
 		{
-		    var width = liveCamTexture.width;
-		    var height = liveCamTexture.height;
+			var width = liveCamTexture.width;
+			var height = liveCamTexture.height;
+
+			if (forceFullHD) {
+		    	width = 1920;
+		    	height = 1080;
+			}
 
             var camImgYUV = new Image<Rgba, byte>(width, height, 4 * width,
 				AVProLiveCameraPlugin.GetLastFrameBuffered(_liveCamera.Device.DeviceIndex));
@@ -245,23 +214,6 @@ public class CreateTwoTexture : MonoBehaviour
 
             Right.LoadRawTextureData(imgRightRGB);
             Right.Apply();
-
-            /*
-                StringBuilder sb1 = new StringBuilder();
-
-		        var counter1 = 0;
-                foreach (var val in GetImageData(rgbLeft[0]))
-                {
-                    counter1++;
-
-                    sb1.Append(val).Append("|");
-
-                    if (counter1 % rgbLeft.Width == 0)
-                        sb1.AppendLine();
-                }
-
-                File.WriteAllText("TestRGBMatrix1.txt", sb1.ToString());
-             */
         }
         else
             CreateNewTexture(liveCamTexture, Format);
@@ -284,10 +236,16 @@ public class CreateTwoTexture : MonoBehaviour
 
             // create filter
             var blackWhite = new Image<Gray, byte>(2, 1, new Gray(0));
-            _filterLeft = new Image<Rgb, byte>(liveCamTexture.width, liveCamTexture.height);
-            _filterRight = new Image<Rgb, byte>(liveCamTexture.width, liveCamTexture.height);
 
-            blackWhite.Data[0, 0, 0] = 255;
+			if (!forceFullHD) {
+	            _filterLeft = new Image<Rgb, byte>(liveCamTexture.width, liveCamTexture.height);
+	            _filterRight = new Image<Rgb, byte>(liveCamTexture.width, liveCamTexture.height);
+			} else {
+				_filterLeft = new Image<Rgb, byte>(1920, 1080);
+				_filterRight = new Image<Rgb, byte>(1920, 1080);
+			}
+				
+			blackWhite.Data[0, 0, 0] = 255;
             CvInvoke.cvRepeat(blackWhite.Convert<Rgb, byte>(), _filterLeft);
 
             blackWhite.Data[0, 0, 0] = 0;
