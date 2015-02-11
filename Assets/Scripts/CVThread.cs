@@ -6,7 +6,7 @@ using Emgu.CV;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
 
-public class MatrixCalcClass
+public class MatrixCalcThread
 {
     private readonly int _width;
     private readonly int _height;
@@ -14,7 +14,7 @@ public class MatrixCalcClass
     private readonly Image<Rgb, byte> _filter;
     private Image<Rgb, byte> _result;
 
-    public MatrixCalcClass(int width, int height, Image<Rgb, byte> filter)
+    public MatrixCalcThread(int width, int height, Image<Rgb, byte> filter)
     {
         _width = width;
         _height = height;
@@ -39,6 +39,75 @@ public class MatrixCalcClass
     }
 }
 
+public class YUV2RGBConvThread
+{
+    private readonly MatrixCalcThread _matrixCalcPart1;
+    private readonly MatrixCalcThread _matrixCalcPart2;
+
+    private readonly Image<Rgb, byte> _filterLeft;
+    private readonly Image<Rgb, byte> _filterRight;
+
+    private byte[] _result;
+
+    public YUV2RGBConvThread(int width, int height)
+    {
+        _filterLeft = new Image<Rgb, byte>(width, height);
+        _filterRight = new Image<Rgb, byte>(width, height);
+
+        var blackWhite = new Image<Gray, byte>(2, 1, new Gray(0));
+
+        blackWhite.Data[0, 0, 0] = 255;
+        CvInvoke.cvRepeat(blackWhite.Convert<Rgb, byte>(), _filterLeft);
+
+        blackWhite.Data[0, 0, 0] = 0;
+        blackWhite.Data[0, 1, 0] = 255;
+        CvInvoke.cvRepeat(blackWhite.Convert<Rgb, byte>(), _filterRight);
+
+        // threading
+        _matrixCalcPart1 = new MatrixCalcThread(width, height, _filterLeft);
+        _matrixCalcPart2 = new MatrixCalcThread(width, height, _filterRight);
+    }
+
+    public byte[] GetResult()
+    {
+        return _result;
+    }
+
+    private byte[] GetImageData(Image<Rgb, byte> img)
+    {
+        var linData = new byte[img.Data.Length];
+        Buffer.BlockCopy(img.Data, 0, linData, 0, img.Data.Length);
+        return linData;
+    }
+
+    public void ConvertYUV2RGB(Image<Rgba, float> imgPart)
+    {
+        var d = imgPart[2] - 128;
+        var e = imgPart[0] - 128;
+
+        var runningCt = 2;
+        var joinEvent = new AutoResetEvent(false);
+
+        ThreadPool.QueueUserWorkItem(delegate
+        {
+            _matrixCalcPart1.MatrixCalculation(imgPart[1], d, e);
+            if (0 == Interlocked.Decrement(ref runningCt))
+                joinEvent.Set();
+        });
+
+        ThreadPool.QueueUserWorkItem(delegate
+        {
+            _matrixCalcPart2.MatrixCalculation(imgPart[3], d, e);
+            if (0 == Interlocked.Decrement(ref runningCt))
+                joinEvent.Set();
+        });
+
+        joinEvent.WaitOne();
+
+        _result = GetImageData(_matrixCalcPart1.GetResult() + _matrixCalcPart2.GetResult());
+    }
+}
+
 public class CVThread
 {
     private readonly ConvDataCallback _convCallback;
@@ -51,13 +120,10 @@ public class CVThread
     private volatile int _imgWidth;
     private volatile int _imgHeight;
 
+    private readonly YUV2RGBConvThread _imgConvLeft;
+    private readonly YUV2RGBConvThread _imgConvRight;
+
     private Image<Rgba, float> _imgData;
-
-    private readonly MatrixCalcClass _matrixCalcLeft;
-    private readonly MatrixCalcClass _matrixCalcRight;
-
-    private Image<Rgb, byte> _filterLeft;
-    private Image<Rgb, byte> _filterRight;
 
     public CVThread(int width, int height, ConvDataCallback callback)
     {
@@ -69,28 +135,11 @@ public class CVThread
         _imgWidth = width;
         _imgHeight = height;
 
-        CreateFilter();
-
         _convCallback = callback;
 
         // threading
-       _matrixCalcLeft = new MatrixCalcClass(width, height, _filterLeft);
-       _matrixCalcRight = new MatrixCalcClass(width, height, _filterRight);
-    }
-
-    private void CreateFilter()
-    {
-        _filterLeft = new Image<Rgb, byte>(_imgWidth, _imgHeight);
-        _filterRight = new Image<Rgb, byte>(_imgWidth, _imgHeight);
-
-        var blackWhite = new Image<Gray, byte>(2, 1, new Gray(0));
-
-        blackWhite.Data[0, 0, 0] = 255;
-        CvInvoke.cvRepeat(blackWhite.Convert<Rgb, byte>(), _filterLeft);
-
-        blackWhite.Data[0, 0, 0] = 0;
-        blackWhite.Data[0, 1, 0] = 255;
-        CvInvoke.cvRepeat(blackWhite.Convert<Rgb, byte>(), _filterRight);
+        _imgConvLeft = new YUV2RGBConvThread(width, height);
+        _imgConvRight = new YUV2RGBConvThread(width, height);
     }
 
     public void SetUpdatedData(Image<Rgba, float> data)
@@ -114,13 +163,6 @@ public class CVThread
         _shouldStop = true;
     }
 
-    private byte[] GetImageData(Image<Rgb, byte> img)
-    {
-        var linData = new byte[img.Data.Length];
-        Buffer.BlockCopy(img.Data, 0, linData, 0, img.Data.Length);
-        return linData;
-    }
-
     public void ProcessImage()
     {
         while (!_shouldStop)
@@ -130,20 +172,34 @@ public class CVThread
 
             if (_shouldStop) return;
 
+            var imgLeftYUV = _imgData.Copy(new Rectangle(0, 0, _imgWidth / 2, _imgHeight));
+            var imgRightYUV = _imgData.Copy(new Rectangle(_imgWidth / 2, 0, _imgWidth / 2, _imgHeight));
+
             var watch = new Stopwatch();
             watch.Start();
 
-            // left image
-            var imgLeftYUV = _imgData.Copy(new Rectangle(0, 0, _imgWidth / 2, _imgHeight));
-            var imgLeftRGB = GetImageData(ConvertYUV2RGB(imgLeftYUV));
+            var runningCt = 2;
+            var joinEvent = new AutoResetEvent(false);
 
-            // right image
-            var imgRightYUV = _imgData.Copy(new Rectangle(_imgWidth / 2, 0, _imgWidth / 2, _imgHeight));
-            var imgRightRGB = GetImageData(ConvertYUV2RGB(imgRightYUV));
+            ThreadPool.QueueUserWorkItem(delegate
+            {
+                _imgConvLeft.ConvertYUV2RGB(imgLeftYUV);
+                if (0 == Interlocked.Decrement(ref runningCt))
+                    joinEvent.Set();
+            });
+
+            ThreadPool.QueueUserWorkItem(delegate
+            {
+                _imgConvRight.ConvertYUV2RGB(imgRightYUV);
+                if (0 == Interlocked.Decrement(ref runningCt))
+                    joinEvent.Set();
+            });
+
+            joinEvent.WaitOne();
 
             // return data
             if (_convCallback != null)
-                _convCallback(imgLeftRGB, imgRightRGB);
+                _convCallback(_imgConvLeft.GetResult(), _imgConvRight.GetResult());
 
             UnityEngine.Debug.Log(" End1: " + watch.ElapsedMilliseconds + " / " + watch.ElapsedTicks);
 
@@ -153,30 +209,5 @@ public class CVThread
         }
     }
 
-    private Image<Rgb, byte> ConvertYUV2RGB(Image<Rgba, float> imgPart)
-    {
-        var d = imgPart[2] - 128;
-        var e = imgPart[0] - 128;
 
-        var runningCt = 2;
-        var joinEvent = new AutoResetEvent(false);
-
-        ThreadPool.QueueUserWorkItem(delegate
-        {
-            _matrixCalcLeft.MatrixCalculation(imgPart[1], d, e);
-            if (0 == Interlocked.Decrement(ref runningCt))
-                joinEvent.Set();
-        });
-
-        ThreadPool.QueueUserWorkItem(delegate
-        {
-            _matrixCalcRight.MatrixCalculation(imgPart[3], d, e);
-            if (0 == Interlocked.Decrement(ref runningCt))
-                joinEvent.Set();
-        });
-
-        joinEvent.WaitOne();
-
-        return _matrixCalcLeft.GetResult() + _matrixCalcRight.GetResult();
-    }
 }
