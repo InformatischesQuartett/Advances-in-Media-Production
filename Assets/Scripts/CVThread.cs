@@ -1,16 +1,42 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.Threading;
 using Emgu.CV;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
 
-public struct ThreadData
+public class MatrixCalcClass
 {
-    public Image<Rgba, float> Slice;
-    public Image<Gray, float> D;
-    public Image<Gray, float> E;
-    public int Part;
+    private readonly int _width;
+    private readonly int _height;
+
+    private readonly Image<Rgb, byte> _filter;
+    private Image<Rgb, byte> _result;
+
+    public MatrixCalcClass(int width, int height, Image<Rgb, byte> filter)
+    {
+        _width = width;
+        _height = height;
+        _filter = filter;
+    }
+
+    public Image<Rgb, byte> GetResult()
+    {
+        return _result;
+    }
+
+    public void MatrixCalculation(Image<Gray, float> c, Image<Gray, float> d, Image<Gray, float> e)
+    {
+        c -= 16;
+
+        var rgbPart = new Image<Rgb, float>(_width / 2, _height);
+        rgbPart[2] = (((298 * c + 409 * e + 128) / 256) - 0.5f).ThresholdToZero(new Gray(0)).ThresholdTrunc(new Gray(255));
+        rgbPart[1] = (((298 * c - 100 * d - 208 * e + 128) / 256) - 0.5f).ThresholdToZero(new Gray(0)).ThresholdTrunc(new Gray(255));
+        rgbPart[0] = (((298 * c + 516 * d + 128) / 256) - 0.5f).ThresholdToZero(new Gray(0)).ThresholdTrunc(new Gray(255));
+
+        _result = rgbPart.Resize(_width, _height, INTER.CV_INTER_NN).Convert<Rgb, byte>().And(_filter);
+    }
 }
 
 public class CVThread
@@ -26,7 +52,9 @@ public class CVThread
     private volatile int _imgHeight;
 
     private Image<Rgba, float> _imgData;
-    private readonly Image<Rgb, float>[] _rgbParts;
+
+    private readonly MatrixCalcClass _matrixCalcLeft;
+    private readonly MatrixCalcClass _matrixCalcRight;
 
     private Image<Rgb, byte> _filterLeft;
     private Image<Rgb, byte> _filterRight;
@@ -41,11 +69,13 @@ public class CVThread
         _imgWidth = width;
         _imgHeight = height;
 
-        _rgbParts = new Image<Rgb, float>[2];
-
         CreateFilter();
 
         _convCallback = callback;
+
+        // threading
+       _matrixCalcLeft = new MatrixCalcClass(width, height, _filterLeft);
+       _matrixCalcRight = new MatrixCalcClass(width, height, _filterRight);
     }
 
     private void CreateFilter()
@@ -74,6 +104,11 @@ public class CVThread
         return _updatedData;
     }
 
+    public int GetRunCount()
+    {
+        return _runCounter;
+    }
+
     public void RequestStop()
     {
         _shouldStop = true;
@@ -95,6 +130,9 @@ public class CVThread
 
             if (_shouldStop) return;
 
+            var watch = new Stopwatch();
+            watch.Start();
+
             // left image
             var imgLeftYUV = _imgData.Copy(new Rectangle(0, 0, _imgWidth / 2, _imgHeight));
             var imgLeftRGB = GetImageData(ConvertYUV2RGB(imgLeftYUV));
@@ -107,6 +145,8 @@ public class CVThread
             if (_convCallback != null)
                 _convCallback(imgLeftRGB, imgRightRGB);
 
+            UnityEngine.Debug.Log(" End1: " + watch.ElapsedMilliseconds + " / " + watch.ElapsedTicks);
+
             // wait for new data
             _updatedData = false;
             _runCounter++;
@@ -115,43 +155,28 @@ public class CVThread
 
     private Image<Rgb, byte> ConvertYUV2RGB(Image<Rgba, float> imgPart)
     {
-        //var watch = new Stopwatch();
-        //watch.Start();
-
         var d = imgPart[2] - 128;
         var e = imgPart[0] - 128;
 
-        var fstThread = new Thread(MatrixCalculation);
-        fstThread.Start(new ThreadData { Slice = imgPart, D = d, E = e, Part = 0});
+        var runningCt = 2;
+        var joinEvent = new AutoResetEvent(false);
 
-        var sndThread = new Thread(MatrixCalculation);
-        sndThread.Start(new ThreadData { Slice = imgPart, D = d, E = e, Part = 1 });
+        ThreadPool.QueueUserWorkItem(delegate
+        {
+            _matrixCalcLeft.MatrixCalculation(imgPart[1], d, e);
+            if (0 == Interlocked.Decrement(ref runningCt))
+                joinEvent.Set();
+        });
 
-        fstThread.Join();
-        sndThread.Join();
+        ThreadPool.QueueUserWorkItem(delegate
+        {
+            _matrixCalcRight.MatrixCalculation(imgPart[3], d, e);
+            if (0 == Interlocked.Decrement(ref runningCt))
+                joinEvent.Set();
+        });
 
-        //UnityEngine.Debug.Log("End: " + watch.ElapsedMilliseconds + " / " + watch.ElapsedTicks);
+        joinEvent.WaitOne();
 
-        // filter
-        _rgbParts[0] = _rgbParts[0].Resize(_imgWidth, _imgHeight, INTER.CV_INTER_NN);
-        _rgbParts[1] = _rgbParts[1].Resize(_imgWidth, _imgHeight, INTER.CV_INTER_NN);
-
-        return _rgbParts[0].Convert<Rgb, byte>().And(_filterLeft) +
-               _rgbParts[1].Convert<Rgb, byte>().And(_filterRight);
-    }
-
-    private void MatrixCalculation(object threadDataVar)
-    {
-        var threadData = (ThreadData)threadDataVar;
-        var part = threadData.Part;
-
-        var d = threadData.D;
-        var e = threadData.E;
-        var c = threadData.Slice[(part == 0) ? 1 : 3] - 16;
-
-        _rgbParts[part] = new Image<Rgb, float>(_imgWidth / 2, _imgHeight);
-        _rgbParts[part][2] = (((298 * c + 409 * e + 128) / 256) - 0.5f).ThresholdToZero(new Gray(0)).ThresholdTrunc(new Gray(255));
-        _rgbParts[part][1] = (((298 * c - 100 * d - 208 * e + 128) / 256) - 0.5f).ThresholdToZero(new Gray(0)).ThresholdTrunc(new Gray(255));
-        _rgbParts[part][0] = (((298 * c + 516 * d + 128) / 256) - 0.5f).ThresholdToZero(new Gray(0)).ThresholdTrunc(new Gray(255));
+        return _matrixCalcLeft.GetResult() + _matrixCalcRight.GetResult();
     }
 }

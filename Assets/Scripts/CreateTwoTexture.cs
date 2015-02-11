@@ -35,6 +35,13 @@ public class CreateTwoTexture : MonoBehaviour
     public const bool DemoMode = true;
     private byte[] _sampleData;
 
+    // fps calculations
+    private const float FPSUpdateRate = 2.0f;
+
+    private float _deltaTime;
+    private float _threadFPS;
+    private int _threadFrameCount;
+
     public enum StereoFormat
     {
         FramePacking,
@@ -52,6 +59,11 @@ public class CreateTwoTexture : MonoBehaviour
         CreateNewTexture(_liveCamera.OutputTexture, Format);
 
         _imgDataUpdate = false;
+
+        // fps caluclations
+        _deltaTime = 0.0f;
+        _threadFrameCount = 0;
+        _threadFPS = 0.0f;
     }
 
     private void OnGUI()
@@ -59,9 +71,11 @@ public class CreateTwoTexture : MonoBehaviour
         if (_liveCamera.OutputTexture != null && Left != null && Right != null)
         {
             //GUI.DrawTexture(new Rect(250, 0, 200, 200), _liveCamera.OutputTexture, ScaleMode.ScaleToFit, false);
-            GUI.DrawTexture(new Rect(150, 200, 400, 224), Left, ScaleMode.ScaleToFit, false);
-            GUI.DrawTexture(new Rect(150, 500, 400, 224), Right, ScaleMode.ScaleToFit, false);
+            GUI.DrawTexture(new Rect(150, 100, 400, 224), Left, ScaleMode.ScaleToFit, false);
+            GUI.DrawTexture(new Rect(150, 350, 400, 224), Right, ScaleMode.ScaleToFit, false);
         }
+
+        GUI.Label(new Rect(5, 0, 250, 25), "Performance: " + _threadFPS.ToString("F1") + " fps");
     }
 
     private void Update()
@@ -76,6 +90,20 @@ public class CreateTwoTexture : MonoBehaviour
         }
 
         Convert();
+
+        // fps calculations
+        _deltaTime += Time.deltaTime;
+
+        if (_deltaTime > 1.0f / FPSUpdateRate)
+        {
+            int runCount = _workerObject.GetRunCount();
+
+            int threadDiff = runCount - _threadFrameCount;
+            _threadFPS = threadDiff / _deltaTime;
+            _threadFrameCount = runCount;
+
+            _deltaTime -= 1.0f / FPSUpdateRate;
+        }
     }
 
     private void Convert()
