@@ -6,6 +6,32 @@ using Emgu.CV;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
 
+public class ColorCalcThread
+{
+    private Image<Gray, float> _result;
+
+    private readonly Gray _lgr = new Gray(0);
+    private readonly Gray _hgr = new Gray(255);
+
+    public Image<Gray, float> GetResult()
+    {
+        return _result;
+    }
+
+    public void RedCalculation(Image<Gray, float> c, Image<Gray, float> d, Image<Gray, float> e)
+    {
+        _result = (((298 * c + 409 * e + 128) / 256) - 0.5f).ThresholdToZero(_lgr).ThresholdTrunc(_hgr);
+    }
+    public void GreenCalculation(Image<Gray, float> c, Image<Gray, float> d, Image<Gray, float> e)
+    {
+        _result = (((298 * c - 100 * d - 208 * e + 128) / 256) - 0.5f).ThresholdToZero(_lgr).ThresholdTrunc(_hgr);
+    }
+    public void BlueCalculation(Image<Gray, float> c, Image<Gray, float> d, Image<Gray, float> e)
+    {
+        _result = (((298 * c + 516 * d + 128) / 256) - 0.5f).ThresholdToZero(_lgr).ThresholdTrunc(_hgr);
+    }
+}
+
 public class MatrixCalcThread
 {
     private readonly int _width;
@@ -14,11 +40,20 @@ public class MatrixCalcThread
     private readonly Image<Rgb, byte> _filter;
     private Image<Rgb, byte> _result;
 
+    private readonly ColorCalcThread _colorCalcRed;
+    private readonly ColorCalcThread _colorCalcGreen;
+    private readonly ColorCalcThread _colorCalcBlue;
+
     public MatrixCalcThread(int width, int height, Image<Rgb, byte> filter)
     {
         _width = width;
         _height = height;
         _filter = filter;
+
+        // threading
+        _colorCalcRed = new ColorCalcThread();
+        _colorCalcGreen = new ColorCalcThread();
+        _colorCalcBlue = new ColorCalcThread();
     }
 
     public Image<Rgb, byte> GetResult()
@@ -30,10 +65,39 @@ public class MatrixCalcThread
     {
         c -= 16;
 
+        var runningCt = 3;
+        var joinEvent = new AutoResetEvent(false);
+
+        // red
+        ThreadPool.QueueUserWorkItem(delegate
+        {
+            _colorCalcRed.RedCalculation(c, d, e);
+            if (0 == Interlocked.Decrement(ref runningCt))
+                joinEvent.Set();
+        });
+
+        // green
+        ThreadPool.QueueUserWorkItem(delegate
+        {
+            _colorCalcGreen.GreenCalculation(c, d, e);
+            if (0 == Interlocked.Decrement(ref runningCt))
+                joinEvent.Set();
+        });
+
+        // blue
+        ThreadPool.QueueUserWorkItem(delegate
+        {
+            _colorCalcBlue.BlueCalculation(c, d, e);
+            if (0 == Interlocked.Decrement(ref runningCt))
+                joinEvent.Set();
+        });
+
+        joinEvent.WaitOne();
+
         var rgbPart = new Image<Rgb, float>(_width / 2, _height);
-        rgbPart[2] = (((298 * c + 409 * e + 128) / 256) - 0.5f).ThresholdToZero(new Gray(0)).ThresholdTrunc(new Gray(255));
-        rgbPart[1] = (((298 * c - 100 * d - 208 * e + 128) / 256) - 0.5f).ThresholdToZero(new Gray(0)).ThresholdTrunc(new Gray(255));
-        rgbPart[0] = (((298 * c + 516 * d + 128) / 256) - 0.5f).ThresholdToZero(new Gray(0)).ThresholdTrunc(new Gray(255));
+        rgbPart[2] = _colorCalcRed.GetResult();
+        rgbPart[1] = _colorCalcGreen.GetResult();
+        rgbPart[0] = _colorCalcBlue.GetResult();
 
         _result = rgbPart.Resize(_width, _height, INTER.CV_INTER_NN).Convert<Rgb, byte>().And(_filter);
     }
@@ -44,28 +108,24 @@ public class YUV2RGBConvThread
     private readonly MatrixCalcThread _matrixCalcPart1;
     private readonly MatrixCalcThread _matrixCalcPart2;
 
-    private readonly Image<Rgb, byte> _filterLeft;
-    private readonly Image<Rgb, byte> _filterRight;
-
     private byte[] _result;
 
     public YUV2RGBConvThread(int width, int height)
     {
-        _filterLeft = new Image<Rgb, byte>(width, height);
-        _filterRight = new Image<Rgb, byte>(width, height);
-
+        var filterLeft = new Image<Rgb, byte>(width, height);
+        var filterRight = new Image<Rgb, byte>(width, height);
         var blackWhite = new Image<Gray, byte>(2, 1, new Gray(0));
 
         blackWhite.Data[0, 0, 0] = 255;
-        CvInvoke.cvRepeat(blackWhite.Convert<Rgb, byte>(), _filterLeft);
+        CvInvoke.cvRepeat(blackWhite.Convert<Rgb, byte>(), filterLeft);
 
         blackWhite.Data[0, 0, 0] = 0;
         blackWhite.Data[0, 1, 0] = 255;
-        CvInvoke.cvRepeat(blackWhite.Convert<Rgb, byte>(), _filterRight);
+        CvInvoke.cvRepeat(blackWhite.Convert<Rgb, byte>(), filterRight);
 
         // threading
-        _matrixCalcPart1 = new MatrixCalcThread(width, height, _filterLeft);
-        _matrixCalcPart2 = new MatrixCalcThread(width, height, _filterRight);
+        _matrixCalcPart1 = new MatrixCalcThread(width, height, filterLeft);
+        _matrixCalcPart2 = new MatrixCalcThread(width, height, filterRight);
     }
 
     public byte[] GetResult()
