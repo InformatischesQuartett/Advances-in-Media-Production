@@ -1,131 +1,75 @@
 ﻿using System;
+using System.CodeDom;
 using System.Diagnostics;
 using System.Drawing;
+using System.Linq;
 using System.Threading;
 using Emgu.CV;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
 
-public class ColorCalcThread
+public unsafe class LineConvThread
 {
-    private Image<Gray, float> _result;
+    private byte* _pYUV;
+    private byte* _pRGB;
 
-    private readonly Gray _lgr = new Gray(0);
-    private readonly Gray _hgr = new Gray(255);
+    private readonly int _imgWidth;
 
-    public Image<Gray, float> GetResult()
+    public LineConvThread(int imgWidth, byte* pYUV, byte* pRGB)
     {
-        return _result;
+        _imgWidth = imgWidth;
+
+        _pYUV = pYUV;
+        _pRGB = pRGB;
     }
 
-    public void RedCalculation(Image<Gray, float> c, Image<Gray, float> d, Image<Gray, float> e)
+    public void LineCalculation()
     {
-        _result = (((298 * c + 409 * e + 128) / 256) - 0.5f).ThresholdToZero(_lgr).ThresholdTrunc(_hgr);
-    }
-    public void GreenCalculation(Image<Gray, float> c, Image<Gray, float> d, Image<Gray, float> e)
-    {
-        _result = (((298 * c - 100 * d - 208 * e + 128) / 256) - 0.5f).ThresholdToZero(_lgr).ThresholdTrunc(_hgr);
-    }
-    public void BlueCalculation(Image<Gray, float> c, Image<Gray, float> d, Image<Gray, float> e)
-    {
-        _result = (((298 * c + 516 * d + 128) / 256) - 0.5f).ThresholdToZero(_lgr).ThresholdTrunc(_hgr);
-    }
-}
-
-public class MatrixCalcThread
-{
-    private readonly int _width;
-    private readonly int _height;
-
-    private readonly Image<Rgb, byte> _filter;
-    private Image<Rgb, byte> _result;
-
-    private readonly ColorCalcThread _colorCalcRed;
-    private readonly ColorCalcThread _colorCalcGreen;
-    private readonly ColorCalcThread _colorCalcBlue;
-
-    public MatrixCalcThread(int width, int height, Image<Rgb, byte> filter)
-    {
-        _width = width;
-        _height = height;
-        _filter = filter;
-
-        // threading
-        _colorCalcRed = new ColorCalcThread();
-        _colorCalcGreen = new ColorCalcThread();
-        _colorCalcBlue = new ColorCalcThread();
-    }
-
-    public Image<Rgb, byte> GetResult()
-    {
-        return _result;
-    }
-
-    public void MatrixCalculation(Image<Gray, float> c, Image<Gray, float> d, Image<Gray, float> e)
-    {
-        c -= 16;
-
-        var runningCt = 3;
-        var joinEvent = new AutoResetEvent(false);
-
-        // red
-        ThreadPool.QueueUserWorkItem(delegate
+        // process two pixels at a time
+        for (var x = 0; x < _imgWidth; x += 2)
         {
-            _colorCalcRed.RedCalculation(c, d, e);
-            if (0 == Interlocked.Decrement(ref runningCt))
-                joinEvent.Set();
-        });
+            var c1 = _pYUV[1] - 16;
+            var c2 = _pYUV[3] - 16;
 
-        // green
-        ThreadPool.QueueUserWorkItem(delegate
-        {
-            _colorCalcGreen.GreenCalculation(c, d, e);
-            if (0 == Interlocked.Decrement(ref runningCt))
-                joinEvent.Set();
-        });
+            var d = _pYUV[2] - 128;
+            var e = _pYUV[0] - 128;
 
-        // blue
-        ThreadPool.QueueUserWorkItem(delegate
-        {
-            _colorCalcBlue.BlueCalculation(c, d, e);
-            if (0 == Interlocked.Decrement(ref runningCt))
-                joinEvent.Set();
-        });
+            // first pixel
+            var r1 = (298*c1 + 409*e + 128) >> 8;
+            var g1 = (298*c1 - 100*d - 208*e + 128) >> 8;
+            var b1 = (298*c1 + 516*d + 128) >> 8;
 
-        joinEvent.WaitOne();
+            _pRGB[2] = (byte) (r1 < 0 ? 0 : r1 > 255 ? 255 : r1);
+            _pRGB[1] = (byte) (g1 < 0 ? 0 : g1 > 255 ? 255 : g1);
+            _pRGB[0] = (byte) (b1 < 0 ? 0 : b1 > 255 ? 255 : b1);
 
-        var rgbPart = new Image<Rgb, float>(_width / 2, _height);
-        rgbPart[2] = _colorCalcRed.GetResult();
-        rgbPart[1] = _colorCalcGreen.GetResult();
-        rgbPart[0] = _colorCalcBlue.GetResult();
+            // second pixel
+            var r2 = (298*c2 + 409*e + 128) >> 8;
+            var g2 = (298*c2 - 100*d - 208*e + 128) >> 8;
+            var b2 = (298*c2 + 516*d + 128) >> 8;
 
-        _result = rgbPart.Resize(_width, _height, INTER.CV_INTER_NN).Convert<Rgb, byte>().And(_filter);
+            _pRGB[5] = (byte) (r2 < 0 ? 0 : r2 > 255 ? 255 : r2);
+            _pRGB[4] = (byte) (g2 < 0 ? 0 : g2 > 255 ? 255 : g2);
+            _pRGB[3] = (byte) (b2 < 0 ? 0 : b2 > 255 ? 255 : b2);
+
+            // next
+			_pRGB += 6;
+			_pYUV += 4;
+        }
     }
 }
 
 public class YUV2RGBConvThread
 {
-    private readonly MatrixCalcThread _matrixCalcPart1;
-    private readonly MatrixCalcThread _matrixCalcPart2;
+    private readonly int _imgWidth;
+    private readonly int _imgHeight;
 
     private byte[] _result;
 
     public YUV2RGBConvThread(int width, int height)
     {
-        var filterLeft = new Image<Rgb, byte>(width, height);
-        var filterRight = new Image<Rgb, byte>(width, height);
-        var blackWhite = new Image<Gray, byte>(2, 1, new Gray(0));
-
-        blackWhite.Data[0, 0, 0] = 255;
-        CvInvoke.cvRepeat(blackWhite.Convert<Rgb, byte>(), filterLeft);
-
-        blackWhite.Data[0, 0, 0] = 0;
-        blackWhite.Data[0, 1, 0] = 255;
-        CvInvoke.cvRepeat(blackWhite.Convert<Rgb, byte>(), filterRight);
-
-        // threading
-        _matrixCalcPart1 = new MatrixCalcThread(width, height, filterLeft);
-        _matrixCalcPart2 = new MatrixCalcThread(width, height, filterRight);
+        _imgWidth = width;
+        _imgHeight = height;
     }
 
     public byte[] GetResult()
@@ -133,38 +77,59 @@ public class YUV2RGBConvThread
         return _result;
     }
 
-    private byte[] GetImageData(Image<Rgb, byte> img)
+    private byte[] GetImageData(Image<Rgba, byte> img)
     {
         var linData = new byte[img.Data.Length];
         Buffer.BlockCopy(img.Data, 0, linData, 0, img.Data.Length);
         return linData;
     }
 
-    public void ConvertYUV2RGB(Image<Rgba, float> imgPart)
+    public unsafe void ConvertYUV2RGB(Image<Rgba, byte> imgPart)
     {
-        var d = imgPart[2] - 128;
-        var e = imgPart[0] - 128;
+        var imgDataYUV = GetImageData(imgPart);
+        _result = new byte[(int) (imgDataYUV.Length*1.5f)];
 
-        var runningCt = 2;
-        var joinEvent = new AutoResetEvent(false);
+        var doneEvent = new ManualResetEvent(false);
+        var lineConvArr = new LineConvThread[_imgHeight];
+        var taskCount = _imgHeight;
 
-        ThreadPool.QueueUserWorkItem(delegate
+        fixed (byte* pRGBs = _result, pYUVs = imgDataYUV)
         {
-            _matrixCalcPart1.MatrixCalculation(imgPart[1], d, e);
-            if (0 == Interlocked.Decrement(ref runningCt))
-                joinEvent.Set();
-        });
+            for (var y = 0; y < _imgHeight; y++)
+            {
+                byte* pRGB = pRGBs + y*_imgWidth*3;
+                byte* pYUV = pYUVs + y*_imgWidth*2;
 
-        ThreadPool.QueueUserWorkItem(delegate
+                var lineConv = new LineConvThread(_imgWidth, pYUV, pRGB);
+                lineConvArr[y] = lineConv;
+
+                ThreadPool.QueueUserWorkItem(delegate
+                {
+                    try
+                    {
+                        lineConv.LineCalculation();
+                    }
+                    finally
+                    {
+                        if (Interlocked.Decrement(ref taskCount) == 0)
+                            doneEvent.Set();
+                    }
+                });
+            }
+        }
+
+        doneEvent.WaitOne();
+
+        UnityEngine.Debug.Log("Hier");
+
+        fixed (byte* test = _result)
         {
-            _matrixCalcPart2.MatrixCalculation(imgPart[3], d, e);
-            if (0 == Interlocked.Decrement(ref runningCt))
-                joinEvent.Set();
-        });
+            var testimg = new Image<Rgb, byte>(3840, 1080, 6*1920, new IntPtr(test));
+            UnityEngine.Debug.Log("Da"); 
+            testimg.Save("Test.jpg");
+            UnityEngine.Debug.Log("Dort");
 
-        joinEvent.WaitOne();
-
-        _result = GetImageData(_matrixCalcPart1.GetResult() + _matrixCalcPart2.GetResult());
+        }
     }
 }
 
@@ -183,7 +148,7 @@ public class CVThread
     private readonly YUV2RGBConvThread _imgConvLeft;
     private readonly YUV2RGBConvThread _imgConvRight;
 
-    private Image<Rgba, float> _imgData;
+    private Image<Rgba, byte> _imgData;
 
     public CVThread(int width, int height, ConvDataCallback callback)
     {
@@ -198,11 +163,11 @@ public class CVThread
         _convCallback = callback;
 
         // threading
-        _imgConvLeft = new YUV2RGBConvThread(width, height);
-        _imgConvRight = new YUV2RGBConvThread(width, height);
+        _imgConvLeft = new YUV2RGBConvThread(2*width, height);
+        _imgConvRight = new YUV2RGBConvThread(2*width, height);
     }
 
-    public void SetUpdatedData(Image<Rgba, float> data)
+    public void SetUpdatedData(Image<Rgba, byte> data)
     {
         _imgData = data;
         _updatedData = true;
@@ -232,42 +197,41 @@ public class CVThread
 
             if (_shouldStop) return;
 
-            var imgLeftYUV = _imgData.Copy(new Rectangle(0, 0, _imgWidth / 2, _imgHeight));
-            var imgRightYUV = _imgData.Copy(new Rectangle(_imgWidth / 2, 0, _imgWidth / 2, _imgHeight));
-
             var watch = new Stopwatch();
             watch.Start();
 
-            var runningCt = 2;
+            var imgLeftYUV = _imgData.Copy(new Rectangle(0, 0, _imgWidth/2, _imgHeight));
+            var imgRightYUV = _imgData.Copy(new Rectangle(_imgWidth/2, 0, _imgWidth/2, _imgHeight));
+
+            var runningCt = 1;
             var joinEvent = new AutoResetEvent(false);
 
             ThreadPool.QueueUserWorkItem(delegate
             {
-                _imgConvLeft.ConvertYUV2RGB(imgLeftYUV);
+                _imgData = _imgData.Copy();
+                _imgConvLeft.ConvertYUV2RGB(_imgData);
                 if (0 == Interlocked.Decrement(ref runningCt))
                     joinEvent.Set();
             });
 
-            ThreadPool.QueueUserWorkItem(delegate
+          /*  ThreadPool.QueueUserWorkItem(delegate
             {
                 _imgConvRight.ConvertYUV2RGB(imgRightYUV);
                 if (0 == Interlocked.Decrement(ref runningCt))
                     joinEvent.Set();
-            });
+            });*/
 
             joinEvent.WaitOne();
 
             // return data
             if (_convCallback != null)
-                _convCallback(_imgConvLeft.GetResult(), _imgConvRight.GetResult());
+                _convCallback(_imgConvLeft.GetResult(), _imgConvLeft.GetResult());
 
-            UnityEngine.Debug.Log(" End1: " + watch.ElapsedMilliseconds + " / " + watch.ElapsedTicks);
+            UnityEngine.Debug.Log("End: " + watch.ElapsedMilliseconds);
 
             // wait for new data
             _updatedData = false;
             _runCounter++;
         }
     }
-
-
 }

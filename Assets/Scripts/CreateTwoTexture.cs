@@ -83,6 +83,9 @@ public class CreateTwoTexture : MonoBehaviour
         if (_liveCamera.OutputTexture == null)
             return;
 
+        if (Complete == null)
+            return;
+
         if (_first)
         {
             GetComponent<MaterialCreator>().Init();
@@ -199,12 +202,12 @@ public class CreateTwoTexture : MonoBehaviour
 
             if (!_workerObject.GetUpdatedData())
             {
-                Image<Rgba, float> camImgYUV;
+                Image<Rgba, byte> camImgYUV;
 
                 if (!DemoMode)
                 {
                     camImgYUV = new Image<Rgba, byte>(Complete.width, Complete.height, 4*Complete.width,
-                        AVProLiveCameraPlugin.GetLastFrameBuffered(_liveCamera.Device.DeviceIndex)).Convert<Rgba, float>();
+                        AVProLiveCameraPlugin.GetLastFrameBuffered(_liveCamera.Device.DeviceIndex));
                     camImgYUV = camImgYUV.Flip(FLIP.VERTICAL);
                 }
                 else
@@ -212,16 +215,13 @@ public class CreateTwoTexture : MonoBehaviour
                     fixed (byte* ptr = _sampleData)
                     {
                         camImgYUV =
-                            new Image<Rgba, byte>(Complete.width, Complete.height, 4*Complete.width, new IntPtr(ptr))
-                                .Convert<Rgba, float>();
+                            new Image<Rgba, byte>(Complete.width, Complete.height, 4*Complete.width, new IntPtr(ptr));
                     }
                 }
 
                 _workerObject.SetUpdatedData(camImgYUV);
             }
         }
-        else
-            CreateNewTexture(liveCamTexture, Format);
     }
 
     private void CreateNewTexture(Texture liveCamTexture, StereoFormat format)
