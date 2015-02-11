@@ -1,21 +1,27 @@
 ﻿using System;
 using UnityEngine;
 using System.Collections;
-using System.Diagnostics;
-using System.Drawing;
 using System.IO;
-using System.Text;
 using System.Threading;
-using System.Xml.Serialization;
 using Emgu.CV;
 using Emgu.CV.Structure;
 using Emgu.CV.CvEnum;
+
+public delegate void ConvDataCallback(byte[] imgLeft, byte[] imgRight);
 
 public class CreateTwoTexture : MonoBehaviour
 {
     private AVProLiveCamera _liveCamera;
 
     public StereoFormat Format;
+
+    private byte[] _lastImgLeft;
+    private byte[] _lastImgRight;
+    private bool _imgDataUpdate;
+
+    private CVThread _workerObject;
+    private Thread _workerThread;
+
 
     public Texture2D Left { get; private set; }
     public Texture2D Right { get; private set; }
@@ -25,29 +31,14 @@ public class CreateTwoTexture : MonoBehaviour
 
     private bool _first = true;
 
-    private Image<Rgb, byte> _filterLeft;
-    private Image<Rgb, byte> _filterRight;
-    private Image<Rgb, float>[] _rgbParts;
-
-	private const bool ForceFullHd = true;
-    private const bool DemoMode = true;
+    public const bool ForceFullHd = true;
+    public const bool DemoMode = true;
     private byte[] _sampleData;
-
-    private bool _fstThread = false;
-    private bool _sndThread = false;
 
     public enum StereoFormat
     {
         FramePacking,
         SideBySide
-    }
-
-    public struct ThreadData
-    {
-        public Image<Rgba, float> YUVImg;
-        public int Part;
-        public int Width;
-        public int Height;
     }
 
     // Use this for initialization
@@ -59,6 +50,8 @@ public class CreateTwoTexture : MonoBehaviour
         yield return new WaitForSeconds(1);
 
         CreateNewTexture(_liveCamera.OutputTexture, Format);
+
+        _imgDataUpdate = false;
     }
 
     private void OnGUI()
@@ -114,90 +107,24 @@ public class CreateTwoTexture : MonoBehaviour
         }
     }
 
-    private byte[] GetImageData(Image<Rgba, byte> img)
-    {
-        var linData = new byte[img.Data.Length];
-        Buffer.BlockCopy(img.Data, 0, linData, 0, img.Data.Length);
-        return linData;
-    }
 
-    private byte[] GetImageData(Image<Rgb, byte> img)
-    {
-        var linData = new byte[img.Data.Length];
-        Buffer.BlockCopy(img.Data, 0, linData, 0, img.Data.Length);
-        return linData;
-    }
-
-    private Image<Rgb, byte> ConvertYUV2RGB(Image<Rgba, float> yuvImg, int width, int height)
-    {
-        var watch = new Stopwatch();
-        watch.Start();
-
-        _fstThread = false;
-        _sndThread = false;
-
-        var fstThread = new Thread(MatrixCalculation);
-        fstThread.Start(new ThreadData{ YUVImg = yuvImg, Part = 1, Width = width, Height = height });
-
-        var sndThread = new Thread(MatrixCalculation);
-        sndThread.Start(new ThreadData { YUVImg = yuvImg, Part = 2, Width = width, Height = height });
-
-        fstThread.Join();
-        sndThread.Join();
-
-        UnityEngine.Debug.Log("End: " + watch.ElapsedMilliseconds + " / " + watch.ElapsedTicks);
-
-        // filter
-        _rgbParts[0] = _rgbParts[0].Resize(width, height, INTER.CV_INTER_NN);
-        _rgbParts[1] = _rgbParts[1].Resize(width, height, INTER.CV_INTER_NN);
-
-        return _rgbParts[0].Convert<Rgb, byte>().And(_filterLeft) +
-               _rgbParts[1].Convert<Rgb, byte>().And(_filterRight);
-    }
-
-    private void MatrixCalculation(object threadDataVar)
-    {
-        var threadData = (ThreadData) threadDataVar;
-
-        var d = threadData.YUVImg[2] - 128;
-        var e = threadData.YUVImg[0] - 128;
-
-        if (threadData.Part == 1)
-        {
-            var c1 = threadData.YUVImg[1] - 16;
-
-            _rgbParts[0] = new Image<Rgb, float>(threadData.Width / 2, threadData.Height);
-            _rgbParts[0][2] = (((298 * c1 + 409 * e + 128) / 256) - 0.5f).ThresholdToZero(new Gray(0)).ThresholdTrunc(new Gray(255));
-            _rgbParts[0][1] = (((298 * c1 - 100 * d - 208 * e + 128) / 256) - 0.5f).ThresholdToZero(new Gray(0)).ThresholdTrunc(new Gray(255));
-            _rgbParts[0][0] = (((298 * c1 + 516 * d + 128) / 256) - 0.5f).ThresholdToZero(new Gray(0)).ThresholdTrunc(new Gray(255));
-        }
-        else
-        {
-            var c2 = threadData.YUVImg[3] - 16;
-
-            _rgbParts[1] = new Image<Rgb, float>(threadData.Width / 2, threadData.Height);
-            _rgbParts[1][2] = (((298 * c2 + 409 * e + 128) / 256) - 0.5f).ThresholdToZero(new Gray(0)).ThresholdTrunc(new Gray(255));
-            _rgbParts[1][1] = (((298 * c2 - 100 * d - 208 * e + 128) / 256) - 0.5f).ThresholdToZero(new Gray(0)).ThresholdTrunc(new Gray(255));
-            _rgbParts[1][0] = (((298 * c2 + 516 * d + 128) / 256) - 0.5f).ThresholdToZero(new Gray(0)).ThresholdTrunc(new Gray(255));
-        }
-    }
 
     public void SaveSampleToFile(byte[] data)
-	{
-		if (data == null)
-			return;
-		
-		var randObj = new System.Random();
-		int name = randObj.Next(10000, 99999);
-		string path = Application.streamingAssetsPath + "/Samples/Sample" + name;
-		FileStream file = File.Open(path, FileMode.Create);
-		
-		using (var bw = new BinaryWriter(file))
-			foreach (byte value in data)
-				bw.Write(value);
-		
-		UnityEngine.Debug.Log("Image sample saved to: " + path);
-	}
+    {
+        if (data == null)
+            return;
+
+        var randObj = new System.Random();
+        int name = randObj.Next(10000, 99999);
+        string path = Application.streamingAssetsPath + "/Samples/Sample" + name;
+        FileStream file = File.Open(path, FileMode.Create);
+
+        using (var bw = new BinaryWriter(file))
+            foreach (byte value in data)
+                bw.Write(value);
+
+        UnityEngine.Debug.Log("Image sample saved to: " + path);
+    }
 
     private byte[] ReadSampleFromFile(string id)
     {
@@ -206,7 +133,7 @@ public class CreateTwoTexture : MonoBehaviour
 
         using (var br = new BinaryReader(file))
         {
-            long valueCt = br.BaseStream.Length / sizeof(byte);
+            long valueCt = br.BaseStream.Length/sizeof (byte);
             var readArr = new byte[valueCt];
 
             for (int x = 0; x < valueCt; x++)
@@ -216,51 +143,54 @@ public class CreateTwoTexture : MonoBehaviour
         }
     }
 
-	private unsafe void ConvertFP(Texture liveCamTexture)
-	{
-		if (Complete != null)
-		{
-			var width = liveCamTexture.width;
-			var height = liveCamTexture.height;
+    private void UpdateImgData(byte[] imgLeft, byte[] imgRight)
+    {
+        lock (imgLeft)
+            _lastImgLeft = imgLeft;
 
-            //FixDepthFromFile();
+        lock (imgRight)
+            _lastImgRight = imgRight;
 
-			if (ForceFullHd) {
-		    	width = 1920;
-		    	height = 1080;
-			}
+        _imgDataUpdate = true;
+    }
 
-		   
+    private unsafe void ConvertFP(Texture liveCamTexture)
+    {
+        if (Complete != null)
+        {
+            if (_imgDataUpdate)
+            {
+                Left.LoadRawTextureData(_lastImgLeft);
+                Left.Apply();
 
-		    Image<Rgba, float> camImgYUV;
+                Right.LoadRawTextureData(_lastImgRight);
+                Right.Apply();
 
-		    if (!DemoMode)
-		    {
-		        camImgYUV = new Image<Rgba, byte>(width, height, 4*width,
-                    AVProLiveCameraPlugin.GetLastFrameBuffered(_liveCamera.Device.DeviceIndex)).Convert<Rgba, float>();
-		        camImgYUV = camImgYUV.Flip(FLIP.VERTICAL);
-		    }
-		    else
-		    {
-		        fixed (byte* ptr = _sampleData)
-		        {
-		            camImgYUV = new Image<Rgba, byte>(width, height, 4*width, new IntPtr(ptr)).Convert<Rgba, float>();
-		        }
-		    }
+                _imgDataUpdate = false;
+            }
 
-		    // left image
-		    var imgLeftYUV = camImgYUV.Copy(new Rectangle(0, 0, width/2, height));
-		    var imgLeftRGB = GetImageData(ConvertYUV2RGB(imgLeftYUV, width, height));
+            if (!_workerObject.GetUpdatedData())
+            {
+                Image<Rgba, float> camImgYUV;
 
-            Left.LoadRawTextureData(imgLeftRGB);
-            Left.Apply();
+                if (!DemoMode)
+                {
+                    camImgYUV = new Image<Rgba, byte>(Complete.width, Complete.height, 4*Complete.width,
+                        AVProLiveCameraPlugin.GetLastFrameBuffered(_liveCamera.Device.DeviceIndex)).Convert<Rgba, float>();
+                    camImgYUV = camImgYUV.Flip(FLIP.VERTICAL);
+                }
+                else
+                {
+                    fixed (byte* ptr = _sampleData)
+                    {
+                        camImgYUV =
+                            new Image<Rgba, byte>(Complete.width, Complete.height, 4*Complete.width, new IntPtr(ptr))
+                                .Convert<Rgba, float>();
+                    }
+                }
 
-            // right image
-            var imgRightYUV = camImgYUV.Copy(new Rectangle(width / 2, 0, width / 2, height));
-		    var imgRightRGB = GetImageData(ConvertYUV2RGB(imgRightYUV, width, height));
-
-            Right.LoadRawTextureData(imgRightRGB);
-            Right.Apply();
+                _workerObject.SetUpdatedData(camImgYUV);
+            }
         }
         else
             CreateNewTexture(liveCamTexture, Format);
@@ -277,34 +207,27 @@ public class CreateTwoTexture : MonoBehaviour
         }
         else if (format == StereoFormat.FramePacking)
         {
-			Left = new Texture2D(liveCamTexture.width, liveCamTexture.height/2, TextureFormat.RGB24, false);
-			Right = new Texture2D(liveCamTexture.width, liveCamTexture.height/2, TextureFormat.RGB24, false);
-			Complete = new Texture2D(liveCamTexture.width, liveCamTexture.height, TextureFormat.RGB24, false);
+            var width = liveCamTexture.width;
+            var height = liveCamTexture.height;
 
-            _rgbParts = new Image<Rgb, float>[2];
+            if (ForceFullHd)
+            {
+                width = 1920;
+                height = 1080;
+            }
 
-            // create filter
-            var blackWhite = new Image<Gray, byte>(2, 1, new Gray(0));
-
-			if (!ForceFullHd) {
-	            _filterLeft = new Image<Rgb, byte>(liveCamTexture.width, liveCamTexture.height);
-	            _filterRight = new Image<Rgb, byte>(liveCamTexture.width, liveCamTexture.height);
-			} else {
-				_filterLeft = new Image<Rgb, byte>(1920, 1080);
-				_filterRight = new Image<Rgb, byte>(1920, 1080);
-			}
-				
-			blackWhite.Data[0, 0, 0] = 255;
-            CvInvoke.cvRepeat(blackWhite.Convert<Rgb, byte>(), _filterLeft);
-
-            blackWhite.Data[0, 0, 0] = 0;
-            blackWhite.Data[0, 1, 0] = 255;
-            CvInvoke.cvRepeat(blackWhite.Convert<Rgb, byte>(), _filterRight);
+            Left = new Texture2D(width / 2, height, TextureFormat.RGB24, false);
+            Right = new Texture2D(width / 2, height, TextureFormat.RGB24, false);
+            Complete = new Texture2D(width, height, TextureFormat.RGB24, false);
 
             if (DemoMode)
             {
                 _sampleData = ReadSampleFromFile("16520");
             }
+
+            _workerObject = new CVThread(width, height, UpdateImgData);
+            _workerThread = new Thread(_workerObject.ProcessImage);
+            _workerThread.Start();
         }
     }
 }
