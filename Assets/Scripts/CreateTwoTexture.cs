@@ -58,9 +58,9 @@ public class CreateTwoTexture : MonoBehaviour
     {
         if (_liveCamera.OutputTexture != null && Left != null && Right != null)
         {
-            GUI.DrawTexture(new Rect(250, 0, 200, 200), _liveCamera.OutputTexture, ScaleMode.ScaleToFit, false);
-            GUI.DrawTexture(new Rect(150, 200, 200, 200), Left, ScaleMode.ScaleToFit, false);
-            GUI.DrawTexture(new Rect(350, 200, 200, 200), Right, ScaleMode.ScaleToFit, false);
+            //GUI.DrawTexture(new Rect(250, 0, 200, 200), _liveCamera.OutputTexture, ScaleMode.ScaleToFit, false);
+            GUI.DrawTexture(new Rect(150, 200, 400, 224), Left, ScaleMode.ScaleToFit, false);
+            GUI.DrawTexture(new Rect(150, 500, 400, 224), Right, ScaleMode.ScaleToFit, false);
         }
     }
 
@@ -216,8 +216,8 @@ public class CreateTwoTexture : MonoBehaviour
                 height = 1080;
             }
 
-            Left = new Texture2D(width / 2, height, TextureFormat.RGB24, false);
-            Right = new Texture2D(width / 2, height, TextureFormat.RGB24, false);
+            Left = new Texture2D(width, height, TextureFormat.RGB24, false);
+            Right = new Texture2D(width, height, TextureFormat.RGB24, false);
             Complete = new Texture2D(width, height, TextureFormat.RGB24, false);
 
             if (DemoMode)
