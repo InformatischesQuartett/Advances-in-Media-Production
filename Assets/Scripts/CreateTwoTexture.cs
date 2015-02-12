@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom;
 using UnityEngine;
 using System.Collections;
 using System.IO;
@@ -202,24 +203,17 @@ public class CreateTwoTexture : MonoBehaviour
 
             if (!_workerObject.GetUpdatedData())
             {
-                Image<Rgba, byte> camImgYUV;
-
                 if (!DemoMode)
                 {
-                    camImgYUV = new Image<Rgba, byte>(Complete.width, Complete.height, 4*Complete.width,
-                        AVProLiveCameraPlugin.GetLastFrameBuffered(_liveCamera.Device.DeviceIndex));
-                    camImgYUV = camImgYUV.Flip(FLIP.VERTICAL);
+                    var dvcIndex = _liveCamera.Device.DeviceIndex;
+                    var bytePtr = (byte*) AVProLiveCameraPlugin.GetLastFrameBuffered(dvcIndex).ToPointer();
+                    _workerObject.SetUpdatedData(bytePtr);
                 }
                 else
                 {
-                    fixed (byte* ptr = _sampleData)
-                    {
-                        camImgYUV =
-                            new Image<Rgba, byte>(Complete.width, Complete.height, 4*Complete.width, new IntPtr(ptr));
-                    }
+                    fixed (byte* bytePtr = _sampleData)
+                        _workerObject.SetUpdatedData(bytePtr);
                 }
-
-                _workerObject.SetUpdatedData(camImgYUV);
             }
         }
     }
@@ -253,7 +247,7 @@ public class CreateTwoTexture : MonoBehaviour
                 _sampleData = ReadSampleFromFile("16520");
             }
 
-            _workerObject = new CVThread(width, height, UpdateImgData);
+            _workerObject = new CVThread(2 * width, height, UpdateImgData);
             _workerThread = new Thread(_workerObject.ProcessImage);
             _workerThread.Start();
         }
