@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Drawing;
 using System.Threading;
 using Emgu.CV;
 using Emgu.CV.Structure;
@@ -80,13 +81,14 @@ public unsafe class CVThread
 
     private volatile int _imgWidth;
     private volatile int _imgHeight;
+    private volatile StereoFormat _imgMode;
 
     private readonly YUV2RGBThread _imgConvLeft;
     private readonly YUV2RGBThread _imgConvRight;
 
     private byte* _imgData;
 
-    public CVThread(int width, int height, ConvDataCallback callback)
+    public CVThread(int width, int height, StereoFormat mode, ConvDataCallback callback)
     {
         _runCounter = 0;
 
@@ -95,6 +97,7 @@ public unsafe class CVThread
 
         _imgWidth = width;
         _imgHeight = height;
+        _imgMode = mode;
 
         _convCallback = callback;
     }
@@ -120,11 +123,57 @@ public unsafe class CVThread
         _shouldStop = true;
     }
 
-    private byte[] GetImageData(Image<Rgba, byte> img)
+    private byte[] GetImageData(Image<Rgb, byte> img)
     {
         var linData = new byte[img.Data.Length];
         Buffer.BlockCopy(img.Data, 0, linData, 0, img.Data.Length);
         return linData;
+    }
+
+    private void ProcessSideBySide(ref byte[] rgbImgLeft, ref byte[] rgbImgRight)
+    {
+        var complImage = new Image<Rgb, byte>(_imgWidth, _imgHeight, 3*_imgWidth, new IntPtr(_imgData));
+        var leftImage = complImage.Copy(new Rectangle(0, 0, _imgWidth/2, _imgHeight));
+        var rightImage = complImage.Copy(new Rectangle(_imgWidth/2, 0, _imgWidth/2, _imgHeight));
+
+        rgbImgLeft = GetImageData(leftImage);
+        rgbImgRight = GetImageData(rightImage);
+    }
+
+    private void ProcessFramePacking(ref byte[] rgbImgLeft, ref byte[] rgbImgRight)
+    {
+        var doneEvent = new ManualResetEvent(false);
+        var lineConvArr = new YUV2RGBThread[_imgHeight];
+        var taskCount = _imgHeight;
+
+        fixed (byte* pRGBsLeft = rgbImgLeft, pRGBsRight = rgbImgRight)
+        {
+            for (var y = 0; y < _imgHeight; y++)
+            {
+                byte* pRGBLeft = pRGBsLeft + y*_imgWidth*3/2;
+                byte* pRGBRight = pRGBsRight + y*_imgWidth*3/2;
+
+                byte* pYUV = _imgData + y*_imgWidth*2;
+
+                var lineConv = new YUV2RGBThread(_imgWidth, pYUV, pRGBLeft, pRGBRight);
+                lineConvArr[y] = lineConv;
+
+                ThreadPool.QueueUserWorkItem(delegate
+                {
+                    try
+                    {
+                        lineConv.LineCalculation();
+                    }
+                    finally
+                    {
+                        if (Interlocked.Decrement(ref taskCount) == 0)
+                            doneEvent.Set();
+                    }
+                });
+            }
+        }
+
+        doneEvent.WaitOne();
     }
 
     public void ProcessImage()
@@ -136,56 +185,24 @@ public unsafe class CVThread
 
             if (_shouldStop) return;
 
-            var watch = new Stopwatch();
-            watch.Start();
-
-            // convert YUV2RGB line by line
-            var dataLen = _imgWidth*_imgHeight*4;
+            var dataLen = _imgWidth * _imgHeight * 4;
             var rgbImgLeft = new byte[(int)(dataLen * 1.5f)];
             var rgbImgRight = new byte[(int)(dataLen * 1.5f)];
 
-            var doneEvent = new ManualResetEvent(false);
-            var lineConvArr = new YUV2RGBThread[_imgHeight];
-            var taskCount = _imgHeight;
+            if (_imgMode == StereoFormat.SideBySide)
+                ProcessSideBySide(ref rgbImgLeft, ref rgbImgRight);
 
-            fixed (byte* pRGBsLeft = rgbImgLeft, pRGBsRight = rgbImgRight)
-            {
-                for (var y = 0; y < _imgHeight; y++)
-                {
-                    byte* pRGBLeft = pRGBsLeft + y * _imgWidth * 3 / 2;
-                    byte* pRGBRight = pRGBsRight + y * _imgWidth * 3 / 2;
-
-                    byte* pYUV = _imgData + y * _imgWidth * 2;
-
-                    var lineConv = new YUV2RGBThread(_imgWidth, pYUV, pRGBLeft, pRGBRight);
-                    lineConvArr[y] = lineConv;
-
-                    ThreadPool.QueueUserWorkItem(delegate
-                    {
-                        try
-                        {
-                            lineConv.LineCalculation();
-                        }
-                        finally
-                        {
-                            if (Interlocked.Decrement(ref taskCount) == 0)
-                                doneEvent.Set();
-                        }
-                    });
-                }
-            }
-
-            doneEvent.WaitOne();
+            if (_imgMode == StereoFormat.FramePacking)
+                ProcessFramePacking(ref rgbImgLeft, ref rgbImgRight);
 
             // return data
             if (_convCallback != null)
                 _convCallback(rgbImgLeft, rgbImgRight);
-
-            UnityEngine.Debug.Log("End: " + watch.ElapsedMilliseconds);
 
             // wait for new data
             _updatedData = false;
             _runCounter++;
         }
     }
+
 }
