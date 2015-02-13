@@ -28,7 +28,7 @@ public class CreateTwoTexture : MonoBehaviour
     public Texture2D Right { get; private set; }
 
     public const bool ForceFullHd = true;
-    public const bool DemoMode = true;
+    public const bool DemoMode = false;
     private byte[] _sampleData;
 
     // fps calculations
@@ -117,7 +117,7 @@ public class CreateTwoTexture : MonoBehaviour
         if (DemoMode)
             _sampleData = ReadSampleFromFile("16520");
 
-        _workerObject = new CVThread(2*imgWidth, imgHeight, Format, UpdateImgData);
+        _workerObject = new CVThread(imgWidth, imgHeight, Format, UpdateImgData);
         _workerThread = new Thread(_workerObject.ProcessImage);
         _workerThread.Start();
     }

@@ -95,7 +95,7 @@ public unsafe class CVThread
         _shouldStop = false;
         _updatedData = false;
 
-        _imgWidth = width;
+        _imgWidth = (mode == StereoFormat.FramePacking) ? 2 * width : width;
         _imgHeight = height;
         _imgMode = mode;
 
@@ -130,52 +130,6 @@ public unsafe class CVThread
         return linData;
     }
 
-    private void ProcessSideBySide(ref byte[] rgbImgLeft, ref byte[] rgbImgRight)
-    {
-        var complImage = new Image<Rgb, byte>(_imgWidth, _imgHeight, 3*_imgWidth, new IntPtr(_imgData));
-        var leftImage = complImage.Copy(new Rectangle(0, 0, _imgWidth/2, _imgHeight));
-        var rightImage = complImage.Copy(new Rectangle(_imgWidth/2, 0, _imgWidth/2, _imgHeight));
-
-        rgbImgLeft = GetImageData(leftImage);
-        rgbImgRight = GetImageData(rightImage);
-    }
-
-    private void ProcessFramePacking(ref byte[] rgbImgLeft, ref byte[] rgbImgRight)
-    {
-        var doneEvent = new ManualResetEvent(false);
-        var lineConvArr = new YUV2RGBThread[_imgHeight];
-        var taskCount = _imgHeight;
-
-        fixed (byte* pRGBsLeft = rgbImgLeft, pRGBsRight = rgbImgRight)
-        {
-            for (var y = 0; y < _imgHeight; y++)
-            {
-                byte* pRGBLeft = pRGBsLeft + y*_imgWidth*3/2;
-                byte* pRGBRight = pRGBsRight + y*_imgWidth*3/2;
-
-                byte* pYUV = _imgData + y*_imgWidth*2;
-
-                var lineConv = new YUV2RGBThread(_imgWidth, pYUV, pRGBLeft, pRGBRight);
-                lineConvArr[y] = lineConv;
-
-                ThreadPool.QueueUserWorkItem(delegate
-                {
-                    try
-                    {
-                        lineConv.LineCalculation();
-                    }
-                    finally
-                    {
-                        if (Interlocked.Decrement(ref taskCount) == 0)
-                            doneEvent.Set();
-                    }
-                });
-            }
-        }
-
-        doneEvent.WaitOne();
-    }
-
     public void ProcessImage()
     {
         while (!_shouldStop)
@@ -189,11 +143,38 @@ public unsafe class CVThread
             var rgbImgLeft = new byte[(int)(dataLen * 1.5f)];
             var rgbImgRight = new byte[(int)(dataLen * 1.5f)];
 
-            if (_imgMode == StereoFormat.SideBySide)
-                ProcessSideBySide(ref rgbImgLeft, ref rgbImgRight);
+			var doneEvent = new ManualResetEvent(false);
+			var lineConvArr = new YUV2RGBThread[_imgHeight];
+			var taskCount = _imgHeight;
+			
+			fixed (byte* pRGBsLeft = rgbImgLeft, pRGBsRight = rgbImgRight)
+			{
+				for (var y = 0; y < _imgHeight; y++)
+				{
+					byte* pRGBLeft = pRGBsLeft + y*_imgWidth*3/2;
+					byte* pRGBRight = pRGBsRight + y*_imgWidth*3/2;
+					
+					byte* pYUV = _imgData + y*_imgWidth*2;
+					
+					var lineConv = new YUV2RGBThread(_imgWidth, pYUV, pRGBLeft, pRGBRight);
+					lineConvArr[y] = lineConv;
+					
+					ThreadPool.QueueUserWorkItem(delegate
+					                             {
+						try
+						{
+							lineConv.LineCalculation();
+						}
+						finally
+						{
+							if (Interlocked.Decrement(ref taskCount) == 0)
+								doneEvent.Set();
+						}
+					});
+				}
 
-            if (_imgMode == StereoFormat.FramePacking)
-                ProcessFramePacking(ref rgbImgLeft, ref rgbImgRight);
+				doneEvent.WaitOne();
+			}
 
             // return data
             if (_convCallback != null)
