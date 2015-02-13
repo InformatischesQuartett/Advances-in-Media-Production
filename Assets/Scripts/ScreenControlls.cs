@@ -41,23 +41,12 @@ public class ScreenControlls : MonoBehaviour
 	    _aspectRatio = this.transform.localScale;
 
         _cameras = new List<GameObject>();
-        _avalavailableColors = new List<Color>();
+	    _avalavailableColors = Config.Colors;
 
         //Add Cameras here!
         _cameras.Add(GameObject.Find("/Main Camera"));
         _cameras.Add(GameObject.Find("LeftEyeAnchor"));
         _cameras.Add(GameObject.Find("RightEyeAnchor"));
-
-        _avalavailableColors.Add(Color.white);
-        _avalavailableColors.Add(Color.black);
-        _avalavailableColors.Add(Color.red);
-        _avalavailableColors.Add(Color.black);
-        _avalavailableColors.Add(Color.white);
-        _avalavailableColors.Add(Color.black);
-        _avalavailableColors.Add(Color.green);
-        _avalavailableColors.Add(Color.black);
-        _avalavailableColors.Add(Color.white);
-        _avalavailableColors.Add(Color.black);
 
         SetCamerasBackground(_cameras, _avalavailableColors[_currentColorIndex]);
 	}
