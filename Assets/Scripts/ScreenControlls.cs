@@ -7,8 +7,8 @@ public class ScreenControlls : MonoBehaviour
     private GameObject _screenR;
 
     private float Hit;
-    private float ScreenDistance;
-    private float ScreenSize;
+    public float ScreenDistance { get; private set; }
+    public float ScreenSize{ get; private set; }
 
     public float KeysPerSecond = 1;
     private float _keyTimer = 0;
