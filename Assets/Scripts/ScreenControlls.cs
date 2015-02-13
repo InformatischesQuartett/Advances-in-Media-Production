@@ -74,7 +74,15 @@ public class ScreenControlls : MonoBehaviour
 	            // ScreenDistance += Input.GetAxis("Screen Distance");
                 
                 //SIZE
-	            ScreenSize += Input.GetAxis("Screen Size");
+                if (Input.GetAxis("Screen Size") > 0)
+                {
+                    ScreenSize += 0.1f;
+                }
+                else if (Input.GetAxis("Screen Size") < 0 && ScreenSize > 0.0f)
+                {
+                    ScreenSize -= 0.1f;
+                }
+
 
 	            //COLOR
 	            if (Input.GetAxis("Color Select") > 0)
@@ -108,7 +116,7 @@ public class ScreenControlls : MonoBehaviour
 	            this.transform.position = _positionVector;
 
 	            this.transform.localScale = _aspectRatio*ScreenSize;
-
+                
                 SetCamerasBackground(_cameras, _avalavailableColors[_currentColorIndex]);
 
 	            _keyTimer -= 1/KeysPerSecond;
