@@ -488,12 +488,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ddfe0da5e241c644eb27a7b76c536cc1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Hit: 0
-  HitIncrement: 1
-  ScreenDistance: 100
-  ScreenDistanceIncrement: 5
-  ScreenSize: 1
-  ScreenSizeIncement: .100000001
   KeysPerSecond: 60
 --- !u!4 &1312062314
 Transform:
@@ -770,7 +764,7 @@ MonoBehaviour:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1588954073}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9b314e72e09aac24ea1d8ac469c46440, type: 3}
   m_Name: 
