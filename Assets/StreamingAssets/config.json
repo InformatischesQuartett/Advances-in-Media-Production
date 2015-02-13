@@ -1,8 +1,10 @@
 {
-"Test":1337,
 "Colors":[[1,0,0],[0,1,0],[0,0,1],[1,1,1],[0.5,0.5,0.5],[0,0,0]],
 "ScreenSizeDefault": 1,
+"ScreenSizeSensitivity": 1,
 "ScreenDistanceDefault": 200,
+"ScreenDistanceSensitivity": 150,
 "HitDefault": 0,
+"HitSensitivity": 10,
 "Monoscopic": false,
 }

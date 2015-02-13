@@ -8,10 +8,12 @@ public static class Config {
     private static readonly string _configPath = Application.streamingAssetsPath;
     private static readonly string _presetPath = Application.streamingAssetsPath + @"/Presets";
 
-    public static int Test { get; private set; }
     public static float ScreenDistanceDefault { get; private set; }
+    public static float ScreenDistanceSensitivity { get; private set; }
     public static float ScreenSizeDefault { get; private set; }
+    public static float ScreenSizeSensitivity { get; private set; }
     public static float HitDefault { get; private set; }
+    public static float HitSensitivity { get; private set; }
 
     public static bool Monoscopic { get; private set; }
 
@@ -34,10 +36,12 @@ public static class Config {
         string configContent = File.ReadAllText(_configPath + @"/config.json");
         var conf = JsonConvert.DeserializeObject<ConfigSet>(configContent);
 
-        Test = conf.Test;
         ScreenDistanceDefault = conf.ScreenDistanceDefault;
+        ScreenDistanceSensitivity = conf.ScreenDistanceSensitivity;
         ScreenSizeDefault = conf.ScreenSizeDefault;
+        ScreenSizeSensitivity = conf.ScreenSizeSensitivity;
         HitDefault = conf.HitDefault;
+        HitSensitivity = conf.HitSensitivity;
 
         Monoscopic = conf.Monoscopic;
         OVRManager.instance.monoscopic = Monoscopic;
@@ -62,12 +66,13 @@ public static class Config {
 
     private struct ConfigSet
     {
-        public int Test;
         public float[][] Colors;
         public float ScreenDistanceDefault;
-        public float ScreenDistanceIncrement;
+        public float ScreenDistanceSensitivity;
         public float ScreenSizeDefault;
+        public float ScreenSizeSensitivity;
         public float HitDefault;
+        public float HitSensitivity;
 
         public bool Monoscopic;
     }
