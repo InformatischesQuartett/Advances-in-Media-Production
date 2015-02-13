@@ -32,8 +32,8 @@ public class ScreenControlls : MonoBehaviour
         _positionVectorScreenR = _screenR.transform.position;
 
         _positionVector = this.transform.position;
-        _aspectRatio = this.transform.localScale;
-        Debug.Log(this.transform.localScale);
+        _aspectRatio = this.transform.localScale/100;
+        Debug.Log(this.transform.localScale/100);
         _cameras = new List<GameObject>();
         _avalavailableColors = Config.Colors;
 
@@ -102,6 +102,8 @@ public class ScreenControlls : MonoBehaviour
             this.transform.localScale = _aspectRatio*ScreenSize;
 
             SetCamerasBackground(_cameras, _avalavailableColors[_currentColorIndex]);
+
+            ScreenInfo.UpdateScreenVaues(ScreenDistance, new Vector2(this.transform.localScale.x, this.transform.localScale.z), Hit);
 
             if (Input.GetAxis("TrackerReset") > 0)
                 OVRManager.display.RecenterPose();

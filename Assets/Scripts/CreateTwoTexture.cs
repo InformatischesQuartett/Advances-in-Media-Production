@@ -29,7 +29,11 @@ public class CreateTwoTexture : MonoBehaviour
 
     public const bool ForceFullHd = true;
     public const bool DemoMode = false;
+	public const bool DemoVideo = true;
+
     private byte[] _sampleData;
+	private RenderTexture _movieRendTex;
+	private MovieTexture _movieTexture;
 
     // fps calculations
     private const float FPSUpdateRate = 2.0f;
@@ -54,13 +58,31 @@ public class CreateTwoTexture : MonoBehaviour
         _deltaTime = 0.0f;
         _threadFrameCount = 0;
         _threadFPS = 0.0f;
+
+        ScreenInfo.SetFormatInfo(Format);
     }
 
     private void Update()
     {
         if (Left == null || Right == null) return;
 
-        Convert();
+		if (DemoVideo) {
+			RenderTexture.active = _movieRendTex;
+
+			Graphics.Blit(_movieTexture, _movieRendTex);
+			
+			Left.ReadPixels (new Rect (0, 0, 1920, 1080), 0, 0);
+			Left.Apply ();
+
+			Right.ReadPixels (new Rect (0, 1080, 1920, 1080), 0, 0);
+			Right.Apply ();
+
+			RenderTexture.active = null;
+
+			return;
+		}
+		
+		Convert();
 
         // fps calculations
         _deltaTime += Time.deltaTime;
@@ -94,7 +116,21 @@ public class CreateTwoTexture : MonoBehaviour
     {
         GetComponent<MaterialCreator>().Init();
 
-        var imgWidth = liveCamTexture.width;
+		if (DemoVideo) {
+			_movieTexture = Resources.Load<MovieTexture> ("Textures/Dracula");
+			_movieTexture.Play();
+
+			_movieRendTex = new RenderTexture(1920, 2160, 3);
+			Left = new Texture2D(1920, 1080, TextureFormat.RGB24, false);
+			Right = new Texture2D(1920, 1080, TextureFormat.RGB24, false);
+
+			GameObject.Find("screenL").transform.Rotate(new Vector3(0, 180, 0));
+			GameObject.Find("screenR").transform.Rotate(new Vector3(0, 180, 0));
+
+			return;
+		}
+		
+		var imgWidth = liveCamTexture.width;
         var imgHeight = liveCamTexture.height;
 
         if (ForceFullHd)
@@ -139,7 +175,7 @@ public class CreateTwoTexture : MonoBehaviour
     {
         if (_imgDataUpdate)
         {
-            Left.LoadRawTextureData(_lastImgLeft);
+			Left.LoadRawTextureData(_lastImgLeft);
             Left.Apply();
 
             Right.LoadRawTextureData(_lastImgRight);
