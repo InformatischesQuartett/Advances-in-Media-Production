@@ -20,6 +20,7 @@ public class ScreenControlls : MonoBehaviour
 
     private List<Color> _avalavailableColors;
     private int _currentColorIndex;
+    private bool _colorAxisInUse = false;
 
     // Use this for initialization
     private void Start()
@@ -69,23 +70,21 @@ public class ScreenControlls : MonoBehaviour
         ScreenSize = Mathf.Clamp(ScreenSize, 0, 20);
 
         //COLOR
-        if (Input.anyKeyDown)
+        if (Input.GetAxisRaw("Color Select") != 0)
         {
-            if (Input.GetAxis("Color Select") > 0)
+            if (_colorAxisInUse == false)
             {
-                if (_currentColorIndex == _avalavailableColors.Count - 1)
-                    _currentColorIndex = 0;
-                else
-                    _currentColorIndex++;
+                _currentColorIndex += (int) Input.GetAxisRaw("Color Select");
+                _currentColorIndex = Mathf.Clamp(_currentColorIndex, 0, _avalavailableColors.Count - 1);
             }
-            else if (Input.GetAxis("Color Select") < 0)
-            {
-                if (_currentColorIndex == 0)
-                    _currentColorIndex = _avalavailableColors.Count - 1;
-                else
-                    _currentColorIndex--;
-            }
+            _colorAxisInUse = true;
         }
+        else
+        {
+            _colorAxisInUse = false;
+        }
+
+
 
         _positionVectorScreenL.x = Hit/2f;
         _positionVectorScreenL.y = 0;
