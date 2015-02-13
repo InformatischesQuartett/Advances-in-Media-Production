@@ -121,6 +121,8 @@ public class ScreenControlls : MonoBehaviour
 	    {
 	        _keyTimer = 1/KeysPerSecond;
 	    }
+        if (Input.GetAxis("TrackerReset") > 0)
+            OVRManager.display.RecenterPose();
 	}
 
     private void SetCamerasBackground(List<GameObject> cameras, Color color)
