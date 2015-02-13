@@ -39,7 +39,7 @@ public class ScreenControlls : MonoBehaviour
 
 	    _positionVector = this.transform.position;
 	    _aspectRatio = this.transform.localScale;
-
+        Debug.Log(this.transform.localScale);
         _cameras = new List<GameObject>();
 	    _avalavailableColors = Config.Colors;
 
@@ -62,8 +62,17 @@ public class ScreenControlls : MonoBehaviour
                 Hit += Input.GetAxis("HIT");
 
 	            //Distance
-	            ScreenDistance += Input.GetAxis("Screen Distance");
-	            
+
+	            if (Input.GetAxis("Screen Distance") > 0 )
+	            {
+	                ScreenDistance += 0.5f;
+	            }
+	            else if (Input.GetAxis("Screen Distance") < 0 && ScreenDistance > 0)
+	            {
+	                ScreenDistance -= 0.5f;
+	            }
+	            // ScreenDistance += Input.GetAxis("Screen Distance");
+                
                 //SIZE
 	            ScreenSize += Input.GetAxis("Screen Size");
 
