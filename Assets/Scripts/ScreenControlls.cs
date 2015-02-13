@@ -7,8 +7,8 @@ public class ScreenControlls : MonoBehaviour
     private GameObject _screenR;
 
     private float Hit;
-    public float ScreenDistance { get; private set; }
-    public float ScreenSize{ get; private set; }
+    private float ScreenDistance;
+    private float ScreenSize;
 
     public float KeysPerSecond = 1;
     private float _keyTimer = 0;
@@ -63,7 +63,6 @@ public class ScreenControlls : MonoBehaviour
                 Hit += Input.GetAxis("HIT");
 
 	            //Distance
-
 	            if (Input.GetAxis("Screen Distance") > 0 )
 	            {
 	                ScreenDistance += 0.5f;
@@ -72,16 +71,15 @@ public class ScreenControlls : MonoBehaviour
 	            {
 	                ScreenDistance -= 0.5f;
 	            }
-	            // ScreenDistance += Input.GetAxis("Screen Distance");
                 
                 //SIZE
                 if (Input.GetAxis("Screen Size") > 0)
                 {
-                    ScreenSize += 0.1f;
+                    ScreenSize += 0.01f;
                 }
                 else if (Input.GetAxis("Screen Size") < 0 && ScreenSize > 0.0f)
                 {
-                    ScreenSize -= 0.1f;
+                    ScreenSize -= 0.01f;
                 }
 
 
@@ -123,6 +121,8 @@ public class ScreenControlls : MonoBehaviour
 	            _keyTimer -= 1/KeysPerSecond;
 	        }
 	        _keyTimer += Time.deltaTime;
+
+            ScreenInfo.UpdateScreenVaues(ScreenDistance, new Vector2(this.transform.localScale.x, this.transform.localScale.z), Hit);
 	    }
 	    else
 	    {
