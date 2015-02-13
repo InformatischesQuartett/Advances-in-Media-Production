@@ -78,6 +78,7 @@ public class CreateTwoTexture : MonoBehaviour
     }
     private void OnGUI()
     {
+		/*
         if (_liveCamera.OutputTexture != null && Left != null && Right != null)
         {
             //GUI.DrawTexture(new Rect(250, 0, 200, 200), _liveCamera.OutputTexture, ScaleMode.ScaleToFit, false);
@@ -86,6 +87,7 @@ public class CreateTwoTexture : MonoBehaviour
         }
 
         GUI.Label(new Rect(5, 0, 250, 25), "Performance: " + _threadFPS.ToString("F1") + " fps");
+		*/
     }
 
     private void CreateNewTexture(Texture liveCamTexture, StereoFormat format)
