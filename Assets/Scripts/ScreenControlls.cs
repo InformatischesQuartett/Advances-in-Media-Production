@@ -6,14 +6,9 @@ public class ScreenControlls : MonoBehaviour
     private GameObject _screenL;
     private GameObject _screenR;
 
-    public float Hit = 0;
-    public float HitIncrement = 0.1f;
-
-    public float ScreenDistance = 100;
-    public float ScreenDistanceIncrement = 1;
-
-    public float ScreenSize = 1;
-    public float ScreenSizeIncement = 0.1f;
+    private float Hit;
+    private float ScreenDistance;
+    private float ScreenSize;
 
     public float KeysPerSecond = 1;
     private float _keyTimer = 0;
@@ -49,6 +44,12 @@ public class ScreenControlls : MonoBehaviour
         _cameras.Add(GameObject.Find("RightEyeAnchor"));
 
         SetCamerasBackground(_cameras, _avalavailableColors[_currentColorIndex]);
+
+        //Initial Screen settings
+	    ScreenDistance = Config.ScreenDistanceDefault;
+	    ScreenSize = Config.ScreenSizeDefault;
+        Hit = Config.HitDefault;
+
 	}
 	
 	// Update is called once per frame
@@ -74,7 +75,15 @@ public class ScreenControlls : MonoBehaviour
 	            // ScreenDistance += Input.GetAxis("Screen Distance");
                 
                 //SIZE
-	            ScreenSize += Input.GetAxis("Screen Size");
+                if (Input.GetAxis("Screen Size") > 0)
+                {
+                    ScreenSize += 0.1f;
+                }
+                else if (Input.GetAxis("Screen Size") < 0 && ScreenSize > 0.0f)
+                {
+                    ScreenSize -= 0.1f;
+                }
+
 
 	            //COLOR
 	            if (Input.GetAxis("Color Select") > 0)
@@ -108,7 +117,7 @@ public class ScreenControlls : MonoBehaviour
 	            this.transform.position = _positionVector;
 
 	            this.transform.localScale = _aspectRatio*ScreenSize;
-
+                
                 SetCamerasBackground(_cameras, _avalavailableColors[_currentColorIndex]);
 
 	            _keyTimer -= 1/KeysPerSecond;
@@ -130,4 +139,6 @@ public class ScreenControlls : MonoBehaviour
             cam.camera.backgroundColor = color;
         }
     }
+
+
 }
