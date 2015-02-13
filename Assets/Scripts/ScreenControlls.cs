@@ -136,7 +136,7 @@ public class ScreenControlls : MonoBehaviour
     {
         foreach (GameObject cam in cameras)
         {
-            cam.camera.backgroundColor = color;
+//            cam.camera.backgroundColor = color;
         }
     }
 
