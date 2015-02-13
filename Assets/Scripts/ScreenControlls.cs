@@ -33,8 +33,8 @@ public class ScreenControlls : MonoBehaviour
 	    _positionVectorScreenR = _screenR.transform.position;
 
 	    _positionVector = this.transform.position;
-	    _aspectRatio = this.transform.localScale;
-        Debug.Log(this.transform.localScale);
+	    _aspectRatio = new Vector3(this.transform.localScale.x/100, this.transform.localScale.y, this.transform.localScale.z/100);
+
         _cameras = new List<GameObject>();
 	    _avalavailableColors = Config.Colors;
 
