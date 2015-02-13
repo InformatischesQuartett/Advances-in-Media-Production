@@ -58,6 +58,8 @@ public class CreateTwoTexture : MonoBehaviour
         _deltaTime = 0.0f;
         _threadFrameCount = 0;
         _threadFPS = 0.0f;
+
+        ScreenInfo.SetFormatInfo(Format);
     }
 
     private void Update()
