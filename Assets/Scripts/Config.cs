@@ -13,6 +13,8 @@ public static class Config {
     public static float ScreenSizeDefault { get; private set; }
     public static float HitDefault { get; private set; }
 
+    public static bool Monoscopic { get; private set; }
+
     public static List<Color> Colors
     {
         get { return _colors; }
@@ -36,6 +38,9 @@ public static class Config {
         ScreenDistanceDefault = conf.ScreenDistanceDefault;
         ScreenSizeDefault = conf.ScreenSizeDefault;
         HitDefault = conf.HitDefault;
+
+        Monoscopic = conf.Monoscopic;
+        OVRManager.instance.monoscopic = Monoscopic;
 
         for (int i = 0; i < conf.Colors.Length; i++)
         {
@@ -63,6 +68,8 @@ public static class Config {
         public float ScreenDistanceIncrement;
         public float ScreenSizeDefault;
         public float HitDefault;
+
+        public bool Monoscopic;
     }
 
     private struct PresetSet
