@@ -147,7 +147,7 @@ public unsafe class CVThread
 
     public void ProcessVideo(out byte[] rgbImgLeft, out byte[] rgbImgRight)
     {
-        var frame = _vidCapture.QueryFrame().Convert<Rgb, byte>().Flip(FLIP.HORIZONTAL);
+        var frame = _vidCapture.QueryFrame().Convert<Rgb, byte>();
 
         rgbImgLeft = GetImageData(frame.Copy(new Rectangle(0, 0, 1920, 1080)));
         rgbImgRight = GetImageData(frame.Copy(new Rectangle(0, 0, 1920, 1080)));
