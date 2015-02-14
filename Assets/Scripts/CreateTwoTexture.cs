@@ -8,7 +8,8 @@ public delegate void ConvDataCallback(byte[] imgLeft, byte[] imgRight);
 public enum StereoFormat
 {
     FramePacking,
-    SideBySide
+    SideBySide,
+    VideoSample
 }
 
 public class CreateTwoTexture : MonoBehaviour
@@ -28,8 +29,7 @@ public class CreateTwoTexture : MonoBehaviour
     public Texture2D Right { get; private set; }
 
     public const bool ForceFullHd = true;
-    public const bool DemoMode = false;
-	public const bool DemoVideo = true;
+    public const bool DemoMode = true;
 
     private byte[] _sampleData;
 	private RenderTexture _movieRendTex;
@@ -65,22 +65,6 @@ public class CreateTwoTexture : MonoBehaviour
     private void Update()
     {
         if (Left == null || Right == null) return;
-
-		if (DemoVideo) {
-			RenderTexture.active = _movieRendTex;
-
-			Graphics.Blit(_movieTexture, _movieRendTex);
-			
-			Left.ReadPixels (new Rect (0, 0, 1920, 1080), 0, 0);
-			Left.Apply ();
-
-			Right.ReadPixels (new Rect (0, 1080, 1920, 1080), 0, 0);
-			Right.Apply ();
-
-			RenderTexture.active = null;
-
-			return;
-		}
 		
 		Convert();
 
@@ -106,29 +90,15 @@ public class CreateTwoTexture : MonoBehaviour
             //GUI.DrawTexture(new Rect(250, 0, 200, 200), _liveCamera.OutputTexture, ScaleMode.ScaleToFit, false);
             GUI.DrawTexture(new Rect(150, 100, 400, 224), Left, ScaleMode.ScaleToFit, false);
             GUI.DrawTexture(new Rect(150, 350, 400, 224), Right, ScaleMode.ScaleToFit, false);
-        }
+        }*/
 
         GUI.Label(new Rect(5, 0, 250, 25), "Performance: " + _threadFPS.ToString("F1") + " fps");
-		*/
+		
     }
 
     private void CreateNewTexture(Texture liveCamTexture, StereoFormat format)
     {
         GetComponent<MaterialCreator>().Init();
-
-		if (DemoVideo) {
-			_movieTexture = Resources.Load<MovieTexture> ("Textures/Dracula");
-			_movieTexture.Play();
-
-			_movieRendTex = new RenderTexture(1920, 2160, 3);
-			Left = new Texture2D(1920, 1080, TextureFormat.RGB24, false);
-			Right = new Texture2D(1920, 1080, TextureFormat.RGB24, false);
-
-			GameObject.Find("screenL").transform.Rotate(new Vector3(0, 180, 0));
-			GameObject.Find("screenR").transform.Rotate(new Vector3(0, 180, 0));
-
-			return;
-		}
 		
 		var imgWidth = liveCamTexture.width;
         var imgHeight = liveCamTexture.height;
@@ -147,6 +117,7 @@ public class CreateTwoTexture : MonoBehaviour
                 break;
 
             case StereoFormat.FramePacking:
+            case StereoFormat.VideoSample:
                 Left = new Texture2D(imgWidth, imgHeight, TextureFormat.RGB24, false);
                 Right = new Texture2D(imgWidth, imgHeight, TextureFormat.RGB24, false);
                 break;

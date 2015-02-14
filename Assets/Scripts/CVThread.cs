@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Threading;
 using Emgu.CV;
+using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
 
 public unsafe class YUV2RGBThread
@@ -79,9 +81,11 @@ public unsafe class CVThread
     private volatile bool _shouldStop;
     private volatile bool _updatedData;
 
-    private volatile int _imgWidth;
-    private volatile int _imgHeight;
-    private volatile StereoFormat _imgMode;
+    private readonly int _imgWidth;
+    private readonly int _imgHeight;
+    private StereoFormat _imgMode;
+
+    private Capture _vidCapture;
 
     private readonly YUV2RGBThread _imgConvLeft;
     private readonly YUV2RGBThread _imgConvRight;
@@ -100,6 +104,8 @@ public unsafe class CVThread
         _imgMode = mode;
 
         _convCallback = callback;
+
+        LoadVideoSample();
     }
 
     public void SetUpdatedData(byte* data)
@@ -123,11 +129,66 @@ public unsafe class CVThread
         _shouldStop = true;
     }
 
+    private void LoadVideoSample()
+    {
+        _vidCapture = null;
+
+        _vidCapture = new Capture(UnityEngine.Application.streamingAssetsPath + "/Samples/Dracula.ogv");
+        _vidCapture.SetCaptureProperty(Emgu.CV.CvEnum.CAP_PROP.CV_CAP_PROP_FRAME_HEIGHT, 1920);
+        _vidCapture.SetCaptureProperty(Emgu.CV.CvEnum.CAP_PROP.CV_CAP_PROP_FRAME_WIDTH, 2160);
+    }
+
     private byte[] GetImageData(Image<Rgb, byte> img)
     {
         var linData = new byte[img.Data.Length];
         Buffer.BlockCopy(img.Data, 0, linData, 0, img.Data.Length);
         return linData;
+    }
+
+    public void ProcessVideo(out byte[] rgbImgLeft, out byte[] rgbImgRight)
+    {
+        var frame = _vidCapture.QueryFrame().Convert<Rgb, byte>().Flip(FLIP.HORIZONTAL);
+
+        rgbImgLeft = GetImageData(frame.Copy(new Rectangle(0, 0, 1920, 1080)));
+        rgbImgRight = GetImageData(frame.Copy(new Rectangle(0, 0, 1920, 1080)));
+
+        Thread.Sleep(1);
+    }
+
+    private void ProcessCamera(ref byte[] rgbImgLeft, ref byte[] rgbImgRight)
+    {
+        var doneEvent = new ManualResetEvent(false);
+        var lineConvArr = new YUV2RGBThread[_imgHeight];
+        var taskCount = _imgHeight;
+
+        fixed (byte* pRGBsLeft = rgbImgLeft, pRGBsRight = rgbImgRight)
+        {
+            for (var y = 0; y < _imgHeight; y++)
+            {
+                byte* pRGBLeft = pRGBsLeft + y * _imgWidth * 3 / 2;
+                byte* pRGBRight = pRGBsRight + y * _imgWidth * 3 / 2;
+
+                byte* pYUV = _imgData + y * _imgWidth * 2;
+
+                var lineConv = new YUV2RGBThread(_imgWidth, pYUV, pRGBLeft, pRGBRight);
+                lineConvArr[y] = lineConv;
+
+                ThreadPool.QueueUserWorkItem(delegate
+                {
+                    try
+                    {
+                        lineConv.LineCalculation();
+                    }
+                    finally
+                    {
+                        if (Interlocked.Decrement(ref taskCount) == 0)
+                            doneEvent.Set();
+                    }
+                });
+            }
+
+            doneEvent.WaitOne();
+        }
     }
 
     public void ProcessImage()
@@ -139,42 +200,20 @@ public unsafe class CVThread
 
             if (_shouldStop) return;
 
-            var dataLen = _imgWidth * _imgHeight * 4;
-            var rgbImgLeft = new byte[(int)(dataLen * 1.5f)];
-            var rgbImgRight = new byte[(int)(dataLen * 1.5f)];
+            float dataLen = _imgWidth * _imgHeight;
 
-			var doneEvent = new ManualResetEvent(false);
-			var lineConvArr = new YUV2RGBThread[_imgHeight];
-			var taskCount = _imgHeight;
-			
-			fixed (byte* pRGBsLeft = rgbImgLeft, pRGBsRight = rgbImgRight)
-			{
-				for (var y = 0; y < _imgHeight; y++)
-				{
-					byte* pRGBLeft = pRGBsLeft + y*_imgWidth*3/2;
-					byte* pRGBRight = pRGBsRight + y*_imgWidth*3/2;
-					
-					byte* pYUV = _imgData + y*_imgWidth*2;
-					
-					var lineConv = new YUV2RGBThread(_imgWidth, pYUV, pRGBLeft, pRGBRight);
-					lineConvArr[y] = lineConv;
-					
-					ThreadPool.QueueUserWorkItem(delegate
-					                             {
-						try
-						{
-							lineConv.LineCalculation();
-						}
-						finally
-						{
-							if (Interlocked.Decrement(ref taskCount) == 0)
-								doneEvent.Set();
-						}
-					});
-				}
+            if (_imgMode == StereoFormat.VideoSample)
+                dataLen *= 3;
+            else
+                dataLen *= 4 * 1.5f;
 
-				doneEvent.WaitOne();
-			}
+            var rgbImgLeft = new byte[(int)dataLen];
+            var rgbImgRight = new byte[(int)dataLen];
+
+           if (_imgMode == StereoFormat.VideoSample)
+               ProcessVideo(out rgbImgLeft, out rgbImgRight);
+           else
+               ProcessCamera(ref rgbImgLeft, ref rgbImgRight);
 
             // return data
             if (_convCallback != null)
