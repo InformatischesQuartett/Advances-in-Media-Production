@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
@@ -56,7 +57,7 @@ public class GuiPanel : MonoBehaviour
         _text.text = "\nStereoFormat: " + ScreenInfo.Format +
                      "\nAspect Ratio: " + (int)ScreenInfo.AspectRatio.x + " : " + (int)ScreenInfo.AspectRatio.y +
                      "\nScreen distance: " + ScreenInfo.ScreenDistance +
-                     "\nScreen size: " + ScreenInfo.ScreenSize + " x " + (9 * (ScreenInfo.ScreenSize / 16)) +
+                     "\nScreen size: " + ScreenInfo.ScreenSize + " x " + (ScreenInfo.AspectRatio.y * (ScreenInfo.ScreenSize / ScreenInfo.AspectRatio.x)) +
                      "\nHIT: " + ScreenInfo.HIT;
 
         toggles = gameObject.GetComponentsInChildren<Toggle>();
@@ -69,7 +70,7 @@ public class GuiPanel : MonoBehaviour
         _text.text = "\nStereoFormat: " + ScreenInfo.Format +
                      "\nAspect Ratio: " + (int)ScreenInfo.AspectRatio.x + " : " +(int)ScreenInfo.AspectRatio.y+
                      "\nScreen distance: " + ScreenInfo.ScreenDistance +
-                     "\nScreen size: " + ScreenInfo.ScreenSize + " x " + (9*(ScreenInfo.ScreenSize/16)) +
+                     "\nScreen size: " + ScreenInfo.ScreenSize + " x " + (ScreenInfo.AspectRatio.y * (ScreenInfo.ScreenSize / ScreenInfo.AspectRatio.x)) +
                      "\nHIT: " + ScreenInfo.HIT;
 
         SelectPreset();
@@ -81,7 +82,6 @@ public class GuiPanel : MonoBehaviour
         if (Input.GetKeyUp(KeyCode.Alpha1))
         {
             //set Rpeset to Ciname big
-            Debug.Log(1);
             toggles[0].isOn = true;
             toggles[1].isOn = false;
             toggles[2].isOn = false;
@@ -100,6 +100,13 @@ public class GuiPanel : MonoBehaviour
             toggles[1].isOn = false;
             toggles[2].isOn = true;
             SetScreen(_tv._screenDistance, _tv._screenSize);
+        }
+        if (Input.GetAxis("Screen Distance") != 0.0f || Input.GetAxis("Screen Size") != 0.0f)
+        {
+            foreach (var toggle in toggles)
+            {
+                toggle.isOn = false;
+            }
         }
     }
 
