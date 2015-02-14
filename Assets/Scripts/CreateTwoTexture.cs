@@ -54,7 +54,7 @@ public class CreateTwoTexture : MonoBehaviour
         _threadFrameCount = 0;
         _threadFPS = 0.0f;
 
-        ScreenInfo.SetFormatInfo(Format);
+        
     }
 
     private void Update()
@@ -117,6 +117,7 @@ public class CreateTwoTexture : MonoBehaviour
                 break;
         }
 
+        ScreenInfo.SetFormatInfo(Format);
         switch (format)
         {
             case StereoFormat.DemoMode:
