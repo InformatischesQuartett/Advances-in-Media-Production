@@ -9,6 +9,7 @@ public enum StereoFormat
 {
     FramePacking,
     SideBySide,
+    DemoMode,
     VideoSample
 }
 
@@ -21,19 +22,13 @@ public class CreateTwoTexture : MonoBehaviour
     private byte[] _lastImgLeft;
     private byte[] _lastImgRight;
     private bool _imgDataUpdate;
+    private byte[] _sampleData;
 
     private CVThread _workerObject;
     private Thread _workerThread;
 
     public Texture2D Left { get; private set; }
     public Texture2D Right { get; private set; }
-
-    public const bool ForceFullHd = true;
-    public const bool DemoMode = true;
-
-    private byte[] _sampleData;
-	private RenderTexture _movieRendTex;
-	private MovieTexture _movieTexture;
 
     // fps calculations
     private const float FPSUpdateRate = 2.0f;
@@ -98,36 +93,44 @@ public class CreateTwoTexture : MonoBehaviour
 
     private void CreateNewTexture(Texture liveCamTexture, StereoFormat format)
     {
-        GetComponent<MaterialCreator>().Init();
+        GetComponent<MaterialCreator>().Init(format == StereoFormat.VideoSample);
 		
 		var imgWidth = liveCamTexture.width;
         var imgHeight = liveCamTexture.height;
-
-        if (ForceFullHd)
-        {
-            imgWidth = 1920;
-            imgHeight = 1080;
-        }
+        var deviceIndex = _liveCamera.Device.DeviceIndex;
 
         switch (format)
         {
             case StereoFormat.SideBySide:
-                Left = new Texture2D(imgWidth / 2, imgHeight, TextureFormat.RGB24, false);
-                Right = new Texture2D(imgWidth / 2, imgHeight, TextureFormat.RGB24, false);
+                Left = new Texture2D(imgWidth/2, imgHeight, TextureFormat.RGB24, false);
+                Right = new Texture2D(imgWidth/2, imgHeight, TextureFormat.RGB24, false);
                 break;
 
             case StereoFormat.FramePacking:
             case StereoFormat.VideoSample:
+            case StereoFormat.DemoMode:
+                imgWidth = 1920;
+                imgHeight = 1080;
+
                 Left = new Texture2D(imgWidth, imgHeight, TextureFormat.RGB24, false);
                 Right = new Texture2D(imgWidth, imgHeight, TextureFormat.RGB24, false);
                 break;
         }
 
         ScreenInfo.SetFormatInfo(Format);
-        if (DemoMode)
-            _sampleData = ReadSampleFromFile("16520");
+        switch (format)
+        {
+            case StereoFormat.DemoMode:
+                deviceIndex = -1;
+                _sampleData = ReadSampleFromFile("16520");
+                break;
 
-        _workerObject = new CVThread(imgWidth, imgHeight, Format, UpdateImgData);
+            case StereoFormat.VideoSample:
+                deviceIndex = -1;
+                break;
+        }
+
+        _workerObject = new CVThread(imgWidth, imgHeight, Format, UpdateImgData, deviceIndex);
         _workerThread = new Thread(_workerObject.ProcessImage);
         _workerThread.Start();
     }
@@ -156,19 +159,19 @@ public class CreateTwoTexture : MonoBehaviour
             _imgDataUpdate = false;
         }
 
-        if (!_workerObject.GetUpdatedData())
+        if (_workerObject.GetUpdatedData())
+            return;
+
+        switch (Format)
         {
-            if (!DemoMode)
-            {
-                var dvcIndex = _liveCamera.Device.DeviceIndex;
-                var bytePtr = (byte*) AVProLiveCameraPlugin.GetLastFrameBuffered(dvcIndex).ToPointer();
-                _workerObject.SetUpdatedData(bytePtr);
-            }
-            else
-            {
+            case StereoFormat.DemoMode:
                 fixed (byte* bytePtr = _sampleData)
                     _workerObject.SetUpdatedData(bytePtr);
-            }
+                break;
+
+            default:
+                _workerObject.SetUpdatedData();
+                break;
         }
     }
 
