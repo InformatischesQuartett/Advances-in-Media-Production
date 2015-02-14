@@ -103,9 +103,11 @@ public static class Config {
         public bool Monoscopic;
     }
 
-    private struct PresetSet
+    public struct PresetSet
     {
-        
+        //just some temp dummy presets
+        public  float _screenDistance;
+        public  float _screenSize;   
     }
 
 

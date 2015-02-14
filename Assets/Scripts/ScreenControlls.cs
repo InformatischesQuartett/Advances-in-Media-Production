@@ -8,8 +8,8 @@ public class ScreenControlls : MonoBehaviour
     private GameObject _screenR;
 
     public float Hit { get; private set; }
-    public float ScreenDistance { get; private set; }
-    public float ScreenSize { get; private set; }
+    public float ScreenDistance { get; set; }
+    public float ScreenSize { get; set; }
 
     private Vector3 _positionVectorScreenL;
     private Vector3 _positionVectorScreenR;
@@ -105,8 +105,7 @@ public class ScreenControlls : MonoBehaviour
 
         SetCamerasBackground(_cameras, _avalavailableColors[_currentColorIndex]);
 
-        ScreenInfo.UpdateScreenVaues(ScreenDistance,
-            new Vector2(this.transform.localScale.x, this.transform.localScale.z), Hit);
+        ScreenInfo.UpdateScreenVaues(ScreenDistance, ScreenSize, Hit);
 
         if (Input.GetAxis("TrackerReset") > 0)
             OVRManager.display.RecenterPose();
