@@ -85,6 +85,7 @@ public unsafe class CVThread
     private readonly int _imgHeight;
     private StereoFormat _imgMode;
 
+    private int _deviceID;
     private Capture _vidCapture;
 
     private readonly YUV2RGBThread _imgConvLeft;
@@ -92,7 +93,7 @@ public unsafe class CVThread
 
     private byte* _imgData;
 
-    public CVThread(int width, int height, StereoFormat mode, ConvDataCallback callback)
+    public CVThread(int width, int height, StereoFormat mode, ConvDataCallback callback, int dID = -1)
     {
         _runCounter = 0;
 
@@ -104,6 +105,7 @@ public unsafe class CVThread
         _imgMode = mode;
 
         _convCallback = callback;
+        _deviceID = dID;
 
         LoadVideoSample();
     }
@@ -111,6 +113,14 @@ public unsafe class CVThread
     public void SetUpdatedData(byte* data)
     {
         _imgData = data;
+        _updatedData = true;
+    }
+
+    public void SetUpdatedData()
+    {
+        if (_imgMode != StereoFormat.VideoSample)
+            _imgData = (byte*)AVProLiveCameraPlugin.GetLastFrameBuffered(_deviceID).ToPointer();
+
         _updatedData = true;
     }
 
@@ -224,5 +234,4 @@ public unsafe class CVThread
             _runCounter++;
         }
     }
-
 }

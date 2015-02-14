@@ -97,6 +97,7 @@ public class CreateTwoTexture : MonoBehaviour
 		
 		var imgWidth = liveCamTexture.width;
         var imgHeight = liveCamTexture.height;
+        var deviceIndex = _liveCamera.Device.DeviceIndex;
 
         switch (format)
         {
@@ -116,10 +117,19 @@ public class CreateTwoTexture : MonoBehaviour
                 break;
         }
 
-        if (format == StereoFormat.DemoMode)
-            _sampleData = ReadSampleFromFile("16520");
+        switch (format)
+        {
+            case StereoFormat.DemoMode:
+                deviceIndex = -1;
+                _sampleData = ReadSampleFromFile("16520");
+                break;
 
-        _workerObject = new CVThread(imgWidth, imgHeight, Format, UpdateImgData);
+            case StereoFormat.VideoSample:
+                deviceIndex = -1;
+                break;
+        }
+
+        _workerObject = new CVThread(imgWidth, imgHeight, Format, UpdateImgData, deviceIndex);
         _workerThread = new Thread(_workerObject.ProcessImage);
         _workerThread.Start();
     }
@@ -158,14 +168,8 @@ public class CreateTwoTexture : MonoBehaviour
                     _workerObject.SetUpdatedData(bytePtr);
                 break;
 
-            case StereoFormat.VideoSample:
-                _workerObject.SetUpdatedData(null);
-                break;
-
             default:
-                var dvcIndex = _liveCamera.Device.DeviceIndex;
-                var byteLivePtr = (byte*) AVProLiveCameraPlugin.GetLastFrameBuffered(dvcIndex).ToPointer();
-                _workerObject.SetUpdatedData(byteLivePtr);
+                _workerObject.SetUpdatedData();
                 break;
         }
     }
