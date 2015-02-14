@@ -18,8 +18,9 @@ public class ScreenControlls : MonoBehaviour
 
     private List<GameObject> _cameras;
 
-    private List<Color> _avalavailableColors;
-    private int _currentColorIndex;
+    private List<Color> _availableColors;
+    public int CurrentColorIndex { get; set; }
+
     private bool _colorAxisInUse = false;
 
     // Use this for initialization
@@ -37,14 +38,14 @@ public class ScreenControlls : MonoBehaviour
         _positionVector = this.transform.position;
 
         _cameras = new List<GameObject>();
-        _avalavailableColors = Config.Colors;
+        _availableColors = Config.Colors;
 
         //Add Cameras here!
         _cameras.Add(GameObject.Find("/Main Camera"));
         _cameras.Add(GameObject.Find("LeftEyeAnchor"));
         _cameras.Add(GameObject.Find("RightEyeAnchor"));
 
-        SetCamerasBackground(_cameras, _avalavailableColors[_currentColorIndex]);
+        SetCamerasBackground(_cameras, _availableColors[CurrentColorIndex]);
 
         //Initial Screen settings
         ScreenDistance = Config.ScreenDistanceDefault;
@@ -74,8 +75,8 @@ public class ScreenControlls : MonoBehaviour
         {
             if (_colorAxisInUse == false)
             {
-                _currentColorIndex += (int) Input.GetAxisRaw("Color Select");
-                _currentColorIndex = Mathf.Clamp(_currentColorIndex, 0, _avalavailableColors.Count - 1);
+                CurrentColorIndex += (int) Input.GetAxisRaw("Color Select");
+                CurrentColorIndex = Mathf.Clamp(CurrentColorIndex, 0, _availableColors.Count - 1);
             }
             _colorAxisInUse = true;
         }
@@ -103,7 +104,7 @@ public class ScreenControlls : MonoBehaviour
 
         this.transform.localScale = ScreenSize * Vector3.one;
 
-        SetCamerasBackground(_cameras, _avalavailableColors[_currentColorIndex]);
+        SetCamerasBackground(_cameras, _availableColors[CurrentColorIndex]);
 
         ScreenInfo.UpdateScreenVaues(ScreenDistance, ScreenSize, Hit);
 
@@ -118,6 +119,11 @@ public class ScreenControlls : MonoBehaviour
         {
             cam.camera.backgroundColor = color;
         }
+    }
+
+    public int GetColorCount()
+    {
+        return _availableColors.Count;
     }
 
 

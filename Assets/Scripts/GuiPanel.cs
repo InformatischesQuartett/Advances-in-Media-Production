@@ -1,17 +1,14 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using UnityEditor;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 public static class ScreenInfo
 {
+    public static Vector2 AspectRatio = new Vector2(Config.AspectRatio.x, Config.AspectRatio.y);
     public static float ScreenDistance { get; private set; }
     public static float ScreenSize { get; private set; }
     public static string Teleoptic { get; private set; }
     public static StereoFormat Format { get; private set; }
     public static float HIT { get; private set; }
-    public static Vector2 AspectRatio = new Vector2(Config.AspectRatio.x, Config.AspectRatio.y);
 
     public static void UpdateScreenVaues(float distance, float size, float hit)
     {
@@ -22,7 +19,7 @@ public static class ScreenInfo
 
     public static void SetTeleoptic()
     {
-        if (Config.Monoscopic == true)
+        if (Config.Monoscopic)
         {
             Teleoptic = "Monoscopic";
         }
@@ -40,41 +37,41 @@ public static class ScreenInfo
 
 public class GuiPanel : MonoBehaviour
 {
+    private Config.PresetSet _big;
     private ScreenControlls _screens;
+    private Config.PresetSet _small;
     private Text _text;
+    private Config.PresetSet _tv;
     private Toggle[] toggles;
-
-    private Config.PresetSet _big, _small, _tv;
     // Use this for initialization
     private void Start()
     {
-        _big = new Config.PresetSet {_screenDistance = 20.0f, _screenSize = 20.0f};
-        _small = new Config.PresetSet { _screenDistance = 15.0f, _screenSize = 5 };
-        _tv = new Config.PresetSet { _screenDistance = 2.5f, _screenSize = 0.7f };
-
         _screens = FindObjectOfType<ScreenControlls>();
+        _big = new Config.PresetSet { _screenDistance = 20.0f, _screenSize = 20.0f, _backgroundColorIndex = _screens.GetColorCount() - 1 };
+        _small = new Config.PresetSet { _screenDistance = 15.0f, _screenSize = 5.0f, _backgroundColorIndex = _screens.GetColorCount() - 1 };
+        _tv = new Config.PresetSet { _screenDistance = 2.5f, _screenSize = 0.7f, _backgroundColorIndex = _screens.GetColorCount() - 2 };
+
         _text = gameObject.GetComponentInChildren<Text>();
         _text.text = "\nStereoFormat: " + ScreenInfo.Format +
-                     "\nAspect Ratio: " + (int)ScreenInfo.AspectRatio.x + " : " + (int)ScreenInfo.AspectRatio.y +
+                     "\nAspect Ratio: " + (int) ScreenInfo.AspectRatio.x + " : " + (int) ScreenInfo.AspectRatio.y +
                      "\nScreen distance: " + ScreenInfo.ScreenDistance +
-                     "\nScreen size: " + ScreenInfo.ScreenSize + " x " + (ScreenInfo.AspectRatio.y * (ScreenInfo.ScreenSize / ScreenInfo.AspectRatio.x)) +
+                     "\nScreen size: " + ScreenInfo.ScreenSize + " x " +
+                     (ScreenInfo.AspectRatio.y*(ScreenInfo.ScreenSize/ScreenInfo.AspectRatio.x)) +
                      "\nHIT: " + ScreenInfo.HIT;
 
         toggles = gameObject.GetComponentsInChildren<Toggle>();
-
-
     }
 
     private void Update()
     {
         _text.text = "\nStereoFormat: " + ScreenInfo.Format +
-                     "\nAspect Ratio: " + (int)ScreenInfo.AspectRatio.x + " : " +(int)ScreenInfo.AspectRatio.y+
+                     "\nAspect Ratio: " + (int) ScreenInfo.AspectRatio.x + " : " + (int) ScreenInfo.AspectRatio.y +
                      "\nScreen distance: " + ScreenInfo.ScreenDistance +
-                     "\nScreen size: " + ScreenInfo.ScreenSize + " x " + (ScreenInfo.AspectRatio.y * (ScreenInfo.ScreenSize / ScreenInfo.AspectRatio.x)) +
+                     "\nScreen size: " + ScreenInfo.ScreenSize + " x " +
+                     (ScreenInfo.AspectRatio.y*(ScreenInfo.ScreenSize/ScreenInfo.AspectRatio.x)) +
                      "\nHIT: " + ScreenInfo.HIT;
 
         SelectPreset();
-
     }
 
     private void SelectPreset()
@@ -85,40 +82,35 @@ public class GuiPanel : MonoBehaviour
             toggles[0].isOn = true;
             toggles[1].isOn = false;
             toggles[2].isOn = false;
-            SetScreen(_big._screenDistance, _big._screenSize);
+            SetPreset(_big._screenDistance, _big._screenSize, _big._backgroundColorIndex);
         }
         if (Input.GetKeyUp(KeyCode.Alpha2))
         {
             toggles[0].isOn = false;
             toggles[1].isOn = true;
             toggles[2].isOn = false;
-            SetScreen(_small._screenDistance, _small._screenSize);
+            SetPreset(_small._screenDistance, _small._screenSize, _small._backgroundColorIndex);
         }
         if (Input.GetKeyUp(KeyCode.Alpha3))
         {
             toggles[0].isOn = false;
             toggles[1].isOn = false;
             toggles[2].isOn = true;
-            SetScreen(_tv._screenDistance, _tv._screenSize);
+            SetPreset(_tv._screenDistance, _tv._screenSize, _tv._backgroundColorIndex);
         }
         if (Input.GetAxis("Screen Distance") != 0.0f || Input.GetAxis("Screen Size") != 0.0f)
         {
-            foreach (var toggle in toggles)
+            foreach (Toggle toggle in toggles)
             {
                 toggle.isOn = false;
             }
         }
     }
 
-    private void SetScreen(float distance, float size)
+    private void SetPreset(float distance, float size, int colorIndex)
     {
         _screens.ScreenDistance = distance;
         _screens.ScreenSize = size;
+        _screens.CurrentColorIndex = colorIndex;
     }
-
-    public void Click()
-    {
-        Debug.Log("Clicked");
-    }
-
 }

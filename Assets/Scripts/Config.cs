@@ -108,7 +108,8 @@ public static class Config {
         //just some temp dummy presets
         public  float _screenDistance;
         //using width as reference, hight ist calculated relative to the aspect ratio
-        public  float _screenSize;   
+        public  float _screenSize;
+        public int _backgroundColorIndex;
     }
 
 
