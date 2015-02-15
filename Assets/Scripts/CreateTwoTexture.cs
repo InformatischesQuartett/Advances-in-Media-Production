@@ -22,7 +22,6 @@ public class CreateTwoTexture : MonoBehaviour
     private byte[] _lastImgLeft;
     private byte[] _lastImgRight;
     private bool _imgDataUpdate;
-    private byte[] _sampleData;
 
     private CVThread _workerObject;
     private Thread _workerThread;
@@ -52,9 +51,7 @@ public class CreateTwoTexture : MonoBehaviour
         // fps caluclations
         _deltaTime = 0.0f;
         _threadFrameCount = 0;
-        _threadFPS = 0.0f;
-
-        
+        _threadFPS = 0.0f;  
     }
 
     private void Update()
@@ -88,7 +85,6 @@ public class CreateTwoTexture : MonoBehaviour
         }*/
 
         GUI.Label(new Rect(5, 0, 250, 25), "Performance: " + _threadFPS.ToString("F1") + " fps");
-		
     }
 
     private void CreateNewTexture(Texture liveCamTexture, StereoFormat format)
@@ -98,6 +94,7 @@ public class CreateTwoTexture : MonoBehaviour
 		var imgWidth = liveCamTexture.width;
         var imgHeight = liveCamTexture.height;
         var deviceIndex = _liveCamera.Device.DeviceIndex;
+        byte[] sampleData = null;
 
         switch (format)
         {
@@ -122,7 +119,8 @@ public class CreateTwoTexture : MonoBehaviour
         {
             case StereoFormat.DemoMode:
                 deviceIndex = -1;
-                _sampleData = ReadSampleFromFile("16520");
+                sampleData = ReadSampleFromFile("16520");
+
                 break;
 
             case StereoFormat.VideoSample:
@@ -130,13 +128,16 @@ public class CreateTwoTexture : MonoBehaviour
                 break;
         }
 
-        _workerObject = new CVThread(imgWidth, imgHeight, Format, UpdateImgData, deviceIndex);
+        _workerObject = new CVThread(imgWidth, imgHeight, Format, UpdateImgData, deviceIndex, sampleData);
         _workerThread = new Thread(_workerObject.ProcessImage);
         _workerThread.Start();
     }
 
     private void UpdateImgData(byte[] imgLeft, byte[] imgRight)
     {
+        if (_imgDataUpdate)
+            return;
+
         lock (imgLeft)
             _lastImgLeft = imgLeft;
 
@@ -146,7 +147,7 @@ public class CreateTwoTexture : MonoBehaviour
         _imgDataUpdate = true;
     }
 
-    private unsafe void Convert()
+    private void Convert()
     {
         if (_imgDataUpdate)
         {
@@ -157,21 +158,6 @@ public class CreateTwoTexture : MonoBehaviour
             Right.Apply();
 
             _imgDataUpdate = false;
-        }
-
-        if (_workerObject.GetUpdatedData())
-            return;
-
-        switch (Format)
-        {
-            case StereoFormat.DemoMode:
-                fixed (byte* bytePtr = _sampleData)
-                    _workerObject.SetUpdatedData(bytePtr);
-                break;
-
-            default:
-                _workerObject.SetUpdatedData();
-                break;
         }
     }
 
@@ -206,5 +192,11 @@ public class CreateTwoTexture : MonoBehaviour
 
             return readArr;
         }
+    }
+
+    private void OnApplicationQuit()
+    {
+        _workerObject.RequestStop();
+        _workerThread.Join();
     }
 }

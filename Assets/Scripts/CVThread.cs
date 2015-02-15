@@ -79,54 +79,38 @@ public unsafe class CVThread
 
     private volatile int _runCounter;
     private volatile bool _shouldStop;
-    private volatile bool _updatedData;
 
     private readonly int _imgWidth;
     private readonly int _imgHeight;
-    private StereoFormat _imgMode;
+    private readonly StereoFormat _imgMode;
 
     private int _deviceID;
+
     private Capture _vidCapture;
+    private int _frameRate;
 
     private readonly YUV2RGBThread _imgConvLeft;
     private readonly YUV2RGBThread _imgConvRight;
 
-    private byte* _imgData;
+    private readonly byte[] _imgData;
 
-    public CVThread(int width, int height, StereoFormat mode, ConvDataCallback callback, int dID = -1)
+    public CVThread(int width, int height, StereoFormat mode, ConvDataCallback callback, int dID = -1, byte[] imgData = null)
     {
         _runCounter = 0;
-
         _shouldStop = false;
-        _updatedData = false;
 
         _imgWidth = (mode == StereoFormat.FramePacking) ? 2 * width : width;
         _imgHeight = height;
         _imgMode = mode;
+        _imgData = imgData;
 
         _convCallback = callback;
         _deviceID = dID;
 
-        LoadVideoSample();
-    }
+        _frameRate = 30;
 
-    public void SetUpdatedData(byte* data)
-    {
-        _imgData = data;
-        _updatedData = true;
-    }
-
-    public void SetUpdatedData()
-    {
-        if (_imgMode != StereoFormat.VideoSample)
-            _imgData = (byte*)AVProLiveCameraPlugin.GetLastFrameBuffered(_deviceID).ToPointer();
-
-        _updatedData = true;
-    }
-
-    public bool GetUpdatedData()
-    {
-        return _updatedData;
+        if (mode == StereoFormat.VideoSample)
+            LoadVideoSample();
     }
 
     public int GetRunCount()
@@ -141,11 +125,8 @@ public unsafe class CVThread
 
     private void LoadVideoSample()
     {
-        _vidCapture = null;
-
         _vidCapture = new Capture(UnityEngine.Application.streamingAssetsPath + "/Samples/Dracula.ogv");
-        _vidCapture.SetCaptureProperty(Emgu.CV.CvEnum.CAP_PROP.CV_CAP_PROP_FRAME_HEIGHT, 1920);
-        _vidCapture.SetCaptureProperty(Emgu.CV.CvEnum.CAP_PROP.CV_CAP_PROP_FRAME_WIDTH, 2160);
+        _frameRate = (int) _vidCapture.GetCaptureProperty(CAP_PROP.CV_CAP_PROP_FPS);
     }
 
     private byte[] GetImageData(Image<Rgb, byte> img)
@@ -157,15 +138,21 @@ public unsafe class CVThread
 
     public void ProcessVideo(out byte[] rgbImgLeft, out byte[] rgbImgRight)
     {
-        var frame = _vidCapture.QueryFrame().Convert<Rgb, byte>();
+        var frame = _vidCapture.QueryFrame();
 
-        rgbImgLeft = GetImageData(frame.Copy(new Rectangle(0, 0, 1920, 1080)));
-        rgbImgRight = GetImageData(frame.Copy(new Rectangle(0, 0, 1920, 1080)));
+        if (frame == null)
+        {
+            _vidCapture.SetCaptureProperty(CAP_PROP.CV_CAP_PROP_POS_AVI_RATIO, 0);
+            frame = _vidCapture.QueryFrame();
+        }
 
-        Thread.Sleep(1);
+        var frameRgb = frame.Convert<Rgb, byte>();
+
+        rgbImgLeft = GetImageData(frameRgb.Copy(new Rectangle(0, 0, 1920, 1080)));
+        rgbImgRight = GetImageData(frameRgb.Copy(new Rectangle(0, 0, 1920, 1080)));
     }
 
-    private void ProcessCamera(ref byte[] rgbImgLeft, ref byte[] rgbImgRight)
+    private void ProcessCamera(byte* imgDataPtr, ref byte[] rgbImgLeft, ref byte[] rgbImgRight)
     {
         var doneEvent = new ManualResetEvent(false);
         var lineConvArr = new YUV2RGBThread[_imgHeight];
@@ -178,7 +165,7 @@ public unsafe class CVThread
                 byte* pRGBLeft = pRGBsLeft + y * _imgWidth * 3 / 2;
                 byte* pRGBRight = pRGBsRight + y * _imgWidth * 3 / 2;
 
-                byte* pYUV = _imgData + y * _imgWidth * 2;
+                byte* pYUV = imgDataPtr + y * _imgWidth * 2;
 
                 var lineConv = new YUV2RGBThread(_imgWidth, pYUV, pRGBLeft, pRGBRight);
                 lineConvArr[y] = lineConv;
@@ -205,11 +192,10 @@ public unsafe class CVThread
     {
         while (!_shouldStop)
         {
-            while (!_updatedData && !_shouldStop)
-                Thread.Sleep(0);
+            var frameWatch = new Stopwatch();
+            frameWatch.Start();
 
-            if (_shouldStop) return;
-
+            // convert data
             float dataLen = _imgWidth * _imgHeight;
 
             if (_imgMode == StereoFormat.VideoSample)
@@ -220,17 +206,32 @@ public unsafe class CVThread
             var rgbImgLeft = new byte[(int)dataLen];
             var rgbImgRight = new byte[(int)dataLen];
 
-           if (_imgMode == StereoFormat.VideoSample)
-               ProcessVideo(out rgbImgLeft, out rgbImgRight);
-           else
-               ProcessCamera(ref rgbImgLeft, ref rgbImgRight);
+            switch (_imgMode)
+            {
+                case StereoFormat.VideoSample:
+                    ProcessVideo(out rgbImgLeft, out rgbImgRight);
+                    break;
+
+                case StereoFormat.DemoMode:
+                    fixed (byte* imgDataPtr = _imgData)
+                        ProcessCamera(imgDataPtr, ref rgbImgLeft, ref rgbImgRight);
+                    break;
+
+                case StereoFormat.SideBySide:
+                case StereoFormat.FramePacking:
+                    var imgCamPtr = (byte*) AVProLiveCameraPlugin.GetLastFrameBuffered(_deviceID).ToPointer();
+                    ProcessCamera(imgCamPtr, ref rgbImgLeft, ref rgbImgRight);
+                    break;
+            }
 
             // return data
             if (_convCallback != null)
                 _convCallback(rgbImgLeft, rgbImgRight);
 
-            // wait for new data
-            _updatedData = false;
+            // limit to specific frame rate
+            while (frameWatch.ElapsedMilliseconds < 1000 / _frameRate)
+                Thread.Sleep(1);
+
             _runCounter++;
         }
     }
