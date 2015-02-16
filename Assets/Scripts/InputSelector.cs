@@ -19,19 +19,24 @@ public class InputSelector : MonoBehaviour {
 		_fontStyle.normal.textColor = Color.white;
 		_fontStyle.fontSize = 30;
 
-		_waitingTime = 50f;
-		_counter = 0f;
+		_waitingTime = Time.time + 15;
 	}
 	
 	// Update is called once per frame
 	void Update () {
-		_counter = _counter + Time.time;
+
+		float timeLeft  = _waitingTime - Time.time; 
+		if (timeLeft < 0) {
+			timeLeft = 0;
+		}
+		//_counter = _counter  + Time.time;
+		Debug.Log (timeLeft);
 
 		/*After a certain amount of time change to Application with default settings*/
-		if (_counter >= _waitingTime) {
+		if (timeLeft <= 1f) {
 			_enableGUI = false;
 		}
-		if (_counter >= _waitingTime + 10) {
+		if (timeLeft <= 0) {
 			Application.LoadLevel("default");
 		}
 	}
