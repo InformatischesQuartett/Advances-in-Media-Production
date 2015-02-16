@@ -25,7 +25,7 @@ public static class Config {
         get { return _colors; }
     }
 
-    private static List<PresetSet> Presets
+    public static List<PresetSet> Presets
     {
         get { return _presets; }
     }
@@ -71,18 +71,18 @@ public static class Config {
         {
             _colors.Add(new Color(conf.Colors[i][0],conf.Colors[i][1],conf.Colors[i][2],1));
         }
-
-        /*
+        
         foreach (string file in Directory.GetFiles(_presetPath))
         {
             if (file.EndsWith(".json"))
             {
                 string filecontent = File.ReadAllText(file);
                 var preset = JsonConvert.DeserializeObject<PresetSet>(filecontent);
+                if (preset.Name == null)
+                    preset.Name = file;
                 Presets.Add(preset);
             }
         }
-         * */
     }
 
     private struct ConfigSet
@@ -105,11 +105,12 @@ public static class Config {
 
     public struct PresetSet
     {
+        public string Name;
         //just some temp dummy presets
-        public  float _screenDistance;
+        public float ScreenDistance;
         //using width as reference, hight ist calculated relative to the aspect ratio
-        public  float _screenSize;
-        public int _backgroundColorIndex;
+        public float ScreenSize;
+        public float[] BackgroundColor;
     }
 
 
