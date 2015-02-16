@@ -9,10 +9,16 @@ public class InputSelector : MonoBehaviour {
 	private float _waitingTime;
 
 	private bool _enableGUI;
+	private bool _done;
+	private bool _inputSelected;
+
 
 	// Use this for initialization
 	void Start () {
 		_enableGUI = true;
+		_done = false;
+		_inputSelected = false;
+
 		_backgroundTex = (Texture2D) Resources.Load ("Textures/background", typeof(Texture2D));
 		_fontStyle = new GUIStyle();
 		_fontStyle.font = (Font) Resources.Load("Fonts/BNKGOTHM");
@@ -24,20 +30,28 @@ public class InputSelector : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-
-		float timeLeft  = _waitingTime - Time.time; 
-		if (timeLeft < 0) {
-			timeLeft = 0;
+		if (_inputSelected) {
+			if (_done) {
+				_enableGUI = false;
+				Application.LoadLevel("default");
+			}
 		}
-		//_counter = _counter  + Time.time;
-		Debug.Log (timeLeft);
 
-		/*After a certain amount of time change to Application with default settings*/
-		if (timeLeft <= 1f) {
-			_enableGUI = false;
-		}
-		if (timeLeft <= 0) {
-			Application.LoadLevel("default");
+		if (!_inputSelected) {
+
+			float timeLeft = _waitingTime - Time.time; 
+			if (timeLeft < 0) {
+				timeLeft = 0;
+			}
+			//_counter = _counter  + Time.time;
+			Debug.Log (timeLeft);
+
+			/*After a certain amount of time change to Application with default settings*/
+			if (timeLeft <= 0) {
+				_enableGUI = false;
+				loadDefaultSettings ();
+				Application.LoadLevel ("default");
+			}
 		}
 	}
 
@@ -49,10 +63,19 @@ public class InputSelector : MonoBehaviour {
 		if (_enableGUI) {
 			GUI.Label (new Rect (10, Screen.height / 1.2f, Screen.width, 50), "Input Selector", _fontStyle);
 			if (GUI.Button (new Rect (10, Screen.height / 2f, 60, 60), "Hallo")) {
+				_inputSelected = true;
 			}
+			if (GUI.Button (new Rect (10, Screen.height / 1.5f, 60, 60), "Done")) {
+				_done = true;
+			}
+
 		} else {
 			GUI.Label (new Rect (10, Screen.height / 1.2f, Screen.width, 50), "Input selected. Please put on your OVR-Device now.", _fontStyle);
 		}
 	}//end OnGUI
+
+	/*Loading Default Settings if nothing was selected*/
+	void loadDefaultSettings () {
+	}
 } //end class
 
