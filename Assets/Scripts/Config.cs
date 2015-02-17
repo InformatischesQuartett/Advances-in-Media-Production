@@ -171,6 +171,7 @@ public enum StereoFormat
 {
     FramePacking,
     SideBySide,
+    TwoCameras,
     DemoMode,
     VideoSample
 }

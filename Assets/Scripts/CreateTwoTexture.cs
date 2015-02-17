@@ -2,6 +2,7 @@
 using System.Collections;
 using System.IO;
 using System.Threading;
+using Newtonsoft.Json.Converters;
 
 public delegate void ConvDataCallback(byte[] imgLeft, byte[] imgRight);
 
@@ -88,26 +89,20 @@ public class CreateTwoTexture : MonoBehaviour
 
         byte[] sampleData = null;
 
-        switch (format)
+        if (format == StereoFormat.SideBySide)
         {
-            case StereoFormat.SideBySide:
-                Left = new Texture2D(imgWidth/2, imgHeight, TextureFormat.RGB24, false);
-                Right = new Texture2D(imgWidth/2, imgHeight, TextureFormat.RGB24, false);
-                break;
-
-            case StereoFormat.FramePacking:
-            case StereoFormat.VideoSample:
-            case StereoFormat.DemoMode:
-                imgWidth = 1920;
-                imgHeight = 1080;
-
-                Left = new Texture2D(imgWidth, imgHeight, TextureFormat.RGB24, false);
-                Right = new Texture2D(imgWidth, imgHeight, TextureFormat.RGB24, false);
-                break;
+            Left = new Texture2D(imgWidth/2, imgHeight, TextureFormat.RGB24, false);
+            Right = new Texture2D(imgWidth/2, imgHeight, TextureFormat.RGB24, false);
+        }
+        else
+        {
+            Left = new Texture2D(imgWidth, imgHeight, TextureFormat.RGB24, false);
+            Right = new Texture2D(imgWidth, imgHeight, TextureFormat.RGB24, false);
         }
 
         ScreenInfo.SetFormatInfo(Format);
 
+        // format checking and material initialization
         switch (format)
         {
             case StereoFormat.DemoMode:
@@ -125,19 +120,43 @@ public class CreateTwoTexture : MonoBehaviour
 
                 break;
 
-            default:
+            case StereoFormat.TwoCameras:
+                GetComponent<MaterialCreator>().Init(false, false);
+
+                // add snd device index
+
+                if (imgWidth != 1920 && imgHeight != 1080)
+                {
+                    Debug.Log("No valid camera attached or wrong mode selected. Image 1 has to be of size 1920x1080.");
+                    return;
+                }
+
+                break;
+
+            case StereoFormat.FramePacking:
+                GetComponent<MaterialCreator>().Init(false, false);
+
+                if (imgWidth != 1920 && imgHeight != 2160)
+                {
+                    Debug.Log("No valid camera attached or wrong mode selected. Image has to be of size 1920x2160.");
+                    return;
+                }
+
+                break;
+
+            case StereoFormat.SideBySide:
                 GetComponent<MaterialCreator>().Init(false, false);
 
                 if (imgWidth < 1920)
                 {
-                    Debug.Log("No valid camera attached. Image is smaller than 1920x1080.");
+                    Debug.Log("No valid camera attached or wrong mode selected. Image has to be of size 1920x1080.");
                     return;
                 }
 
                 break;
         }
 
-        _workerObject = new CVThread(imgWidth, imgHeight, Format, UpdateImgData, deviceIndex, sampleData);
+        _workerObject = new CVThread(1920, 1080, Format, UpdateImgData, deviceIndex, -1, sampleData);
         _workerThread = new Thread(_workerObject.ProcessImage);
         _workerThread.Start();
     }

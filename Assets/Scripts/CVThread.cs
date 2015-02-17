@@ -43,7 +43,7 @@ public unsafe class YUV2RGBThread
             var g2 = (298*c2 - 100*d - 208*e + 128) >> 8;
             var b2 = (298*c2 + 516*d + 128) >> 8;
 
-            if (x < _imgWidth/2)
+            if (x < _imgWidth/2 || _pRGBRight == null)
             {
                 _pRGBLeft[2] = (byte) (r1 < 0 ? 0 : r1 > 255 ? 255 : r1);
                 _pRGBLeft[1] = (byte) (g1 < 0 ? 0 : g1 > 255 ? 255 : g1);
@@ -84,7 +84,8 @@ public unsafe class CVThread
     private readonly int _imgHeight;
     private readonly StereoFormat _imgMode;
 
-    private readonly int _deviceID;
+    private readonly int _deviceID1;
+    private readonly int _deviceID2;
 
     private Capture _vidCapture;
     private int _frameRate;
@@ -94,7 +95,8 @@ public unsafe class CVThread
 
     private readonly byte[] _imgData;
 
-    public CVThread(int width, int height, StereoFormat mode, ConvDataCallback callback, int dID = -1, byte[] imgData = null)
+    public CVThread(int width, int height, StereoFormat mode, ConvDataCallback callback, int dID1 = -1, int dID2 = -1,
+        byte[] imgData = null)
     {
         _runCounter = 0;
         _shouldStop = false;
@@ -108,7 +110,9 @@ public unsafe class CVThread
         _imgData = imgData;
 
         _convCallback = callback;
-        _deviceID = dID;
+
+        _deviceID1 = dID1;
+        _deviceID2 = dID2;
 
         _frameRate = 60;
 
@@ -170,7 +174,9 @@ public unsafe class CVThread
 
                 byte* pYUV = imgDataPtr + y * _imgWidth * 2;
 
-                var lineConv = new YUV2RGBThread(_imgWidth, pYUV, pRGBLeft, pRGBRight);
+                var lineConv = new YUV2RGBThread(_imgWidth, pYUV, pRGBLeft,
+                    (_imgMode == StereoFormat.TwoCameras) ? null : pRGBRight);
+
                 lineConvArr[y] = lineConv;
 
                 ThreadPool.QueueUserWorkItem(delegate
@@ -222,8 +228,17 @@ public unsafe class CVThread
 
                 case StereoFormat.SideBySide:
                 case StereoFormat.FramePacking:
-                    var imgCamPtr = (byte*) AVProLiveCameraPlugin.GetLastFrameBuffered(_deviceID).ToPointer();
+                    var imgCamPtr = (byte*) AVProLiveCameraPlugin.GetLastFrameBuffered(_deviceID1).ToPointer();
                     ProcessCamera(imgCamPtr, ref rgbImgLeft, ref rgbImgRight);
+                    break;
+
+                case StereoFormat.TwoCameras:
+                    var imgCamPtrLeft = (byte*) AVProLiveCameraPlugin.GetLastFrameBuffered(_deviceID1).ToPointer();
+                    ProcessCamera(imgCamPtrLeft, ref rgbImgLeft, ref rgbImgRight); // third param = dummy
+
+                    var imgCamPtrRight = (byte*)AVProLiveCameraPlugin.GetLastFrameBuffered(_deviceID2).ToPointer();
+                    ProcessCamera(imgCamPtrRight, ref rgbImgRight, ref rgbImgLeft); // third param = dummy
+
                     break;
             }
 
