@@ -5,14 +5,6 @@ using System.Threading;
 
 public delegate void ConvDataCallback(byte[] imgLeft, byte[] imgRight);
 
-public enum StereoFormat
-{
-    FramePacking,
-    SideBySide,
-    DemoMode,
-    VideoSample
-}
-
 public class CreateTwoTexture : MonoBehaviour
 {
     private AVProLiveCamera _liveCamera;

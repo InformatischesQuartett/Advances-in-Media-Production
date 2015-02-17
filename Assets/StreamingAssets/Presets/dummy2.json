@@ -1,0 +1,8 @@
+
+{
+"Name": "Dummy2",
+"ScreenSize": 2,
+"ScreenDistance": 10,
+"BackgroundColor": [1,0,1],
+"AspectRatioNorm": "horizontal"
+}

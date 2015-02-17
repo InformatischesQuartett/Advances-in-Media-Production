@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
-using UnityEngineInternal;
 
 public class ScreenControlls : MonoBehaviour
 {
@@ -18,40 +17,35 @@ public class ScreenControlls : MonoBehaviour
 
     private List<GameObject> _cameras;
 
-    private List<Color> _availableColors;
-    public int CurrentColorIndex { get; set; }
-
     private bool _colorAxisInUse = false;
+    private bool _presetAxisInUse = false;
+
+    public List<Config.PresetSet> Presets { get; private set; } 
+
 
     // Use this for initialization
     private void Start()
     {
+        //Initial Screen settings
+        ScreenDistance = Config.ScreenDistanceDefault;
+        ScreenSize = Config.ScreenSizeDefault;
+        Hit = Config.HitDefault;
+
         _screenL = GameObject.Find("screenL");
         _screenR = GameObject.Find("screenR");
 
-        _positionVectorScreenL = _screenL.transform.position;
-        _positionVectorScreenR = _screenR.transform.position;
-
-        _screenL.transform.localScale = Config.AspectRatioNorm;
-        _screenR.transform.localScale = Config.AspectRatioNorm;
+        SetupScreens();
         
         _positionVector = this.transform.position;
 
         _cameras = new List<GameObject>();
-        _availableColors = Config.Colors;
 
         //Add Cameras here!
         _cameras.Add(GameObject.Find("/Main Camera"));
         _cameras.Add(GameObject.Find("LeftEyeAnchor"));
         _cameras.Add(GameObject.Find("RightEyeAnchor"));
 
-        SetCamerasBackground(_cameras, _availableColors[CurrentColorIndex]);
-
-        //Initial Screen settings
-        ScreenDistance = Config.ScreenDistanceDefault;
-        ScreenSize = Config.ScreenSizeDefault;
-        Hit = Config.HitDefault;
-
+        SetCamerasBackground(Config.Colors[Config.CurrentColorIndex]);
     }
 
     // Update is called once per frame
@@ -75,8 +69,8 @@ public class ScreenControlls : MonoBehaviour
         {
             if (_colorAxisInUse == false)
             {
-                CurrentColorIndex += (int) Input.GetAxisRaw("Color Select");
-                CurrentColorIndex = Mathf.Clamp(CurrentColorIndex, 0, _availableColors.Count - 1);
+                Config.CurrentColorIndex += (int)Input.GetAxisRaw("Color Select");
+                SetCamerasBackground(Config.Colors[Config.CurrentColorIndex]);
             }
             _colorAxisInUse = true;
         }
@@ -84,8 +78,21 @@ public class ScreenControlls : MonoBehaviour
         {
             _colorAxisInUse = false;
         }
-
-
+        
+        //Presets
+        if (Input.GetAxisRaw("Preset Select") != 0)
+        {
+            if (_presetAxisInUse == false)
+            {
+                Config.CurrentPresetIndex += (int)Input.GetAxisRaw("Preset Select");
+                LoadPreset();
+            }
+            _presetAxisInUse = true;
+        }
+        else
+        {
+            _presetAxisInUse = false;
+        }
 
         _positionVectorScreenL.x = Hit/2f;
         _positionVectorScreenL.y = 0;
@@ -104,26 +111,40 @@ public class ScreenControlls : MonoBehaviour
 
         this.transform.localScale = ScreenSize * Vector3.one;
 
-        SetCamerasBackground(_cameras, _availableColors[CurrentColorIndex]);
-
         ScreenInfo.UpdateScreenVaues(ScreenDistance, ScreenSize, Hit);
 
         if (Input.GetAxis("TrackerReset") > 0)
             OVRManager.display.RecenterPose();
-
     }
 
-    private void SetCamerasBackground(List<GameObject> cameras, Color color)
+    private void SetCamerasBackground(Color color)
     {
-        foreach (GameObject cam in cameras)
+        foreach (GameObject cam in _cameras)
         {
             cam.camera.backgroundColor = color;
         }
     }
 
-    public int GetColorCount()
+    private void SetupScreens()
     {
-        return _availableColors.Count;
+        _positionVectorScreenL = _screenL.transform.position;
+        _positionVectorScreenR = _screenR.transform.position;
+
+        _screenL.transform.localScale = Config.AspectRatioNorm;
+        _screenR.transform.localScale = Config.AspectRatioNorm;
+    }
+
+    private void LoadPreset()
+    {
+        SetupScreens();
+
+        var color = new Color(Config.Presets[Config.CurrentPresetIndex].BackgroundColor[0], Config.Presets[Config.CurrentPresetIndex].BackgroundColor[1], Config.Presets[Config.CurrentPresetIndex].BackgroundColor[2], 1);
+
+        ScreenDistance = Config.CurrentPreset.ScreenDistance;
+        ScreenSize = Config.CurrentPreset.ScreenSize;
+        Hit = Config.HitDefault;
+
+        SetCamerasBackground(color);
     }
 
 

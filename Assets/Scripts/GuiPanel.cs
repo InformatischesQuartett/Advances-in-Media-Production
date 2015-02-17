@@ -47,9 +47,9 @@ public class GuiPanel : MonoBehaviour
     private void Start()
     {
         _screens = FindObjectOfType<ScreenControlls>();
-        _big = new PresetSetDummy { _screenDistance = 20.0f, _screenSize = 20.0f, _backgroundColorIndex = _screens.GetColorCount() - 1 };
-        _small = new PresetSetDummy { _screenDistance = 15.0f, _screenSize = 5.0f, _backgroundColorIndex = _screens.GetColorCount() - 1 };
-        _tv = new PresetSetDummy { _screenDistance = 2.5f, _screenSize = 0.7f, _backgroundColorIndex = _screens.GetColorCount() - 2 };
+        _big = new PresetSetDummy { _screenDistance = 20.0f, _screenSize = 20.0f, _backgroundColorIndex = Config.Colors.Count - 1 };
+        _small = new PresetSetDummy { _screenDistance = 15.0f, _screenSize = 5.0f, _backgroundColorIndex = Config.Colors.Count - 1 };
+        _tv = new PresetSetDummy { _screenDistance = 2.5f, _screenSize = 0.7f, _backgroundColorIndex = Config.Colors.Count - 2 };
 
         _text = gameObject.GetComponentInChildren<Text>();
         _text.text = "\nStereoFormat: " + ScreenInfo.Format +
@@ -111,7 +111,7 @@ public class GuiPanel : MonoBehaviour
     {
         _screens.ScreenDistance = distance;
         _screens.ScreenSize = size;
-        _screens.CurrentColorIndex = colorIndex;
+        Config.CurrentColorIndex = colorIndex;
     }
 
     public struct PresetSetDummy

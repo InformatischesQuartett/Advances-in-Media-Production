@@ -6,8 +6,8 @@
 "ScreenDistanceSensitivity": 150,
 "HitDefault": 0,
 "HitSensitivity": 10,
-"AspectRatioX": 16,
-"AspectRatioY": 9,
+"DefaultAspectRatioX": 16,
+"DefaultAspectRatioY": 9,
 "AspectRatioNorm": "horizontal",
 "Monoscopic": false,
 }
