@@ -84,7 +84,7 @@ public unsafe class CVThread
     private readonly int _imgHeight;
     private readonly StereoFormat _imgMode;
 
-    private int _deviceID;
+    private readonly int _deviceID;
 
     private Capture _vidCapture;
     private int _frameRate;
@@ -99,7 +99,10 @@ public unsafe class CVThread
         _runCounter = 0;
         _shouldStop = false;
 
-        _imgWidth = (mode == StereoFormat.FramePacking) ? 2 * width : width;
+        _imgWidth = width;
+        if (mode == StereoFormat.FramePacking) _imgWidth *= 2;
+        if (mode == StereoFormat.DemoMode) _imgWidth *= 2;
+
         _imgHeight = height;
         _imgMode = mode;
         _imgData = imgData;
@@ -107,7 +110,7 @@ public unsafe class CVThread
         _convCallback = callback;
         _deviceID = dID;
 
-        _frameRate = 30;
+        _frameRate = 60;
 
         if (mode == StereoFormat.VideoSample)
             LoadVideoSample();

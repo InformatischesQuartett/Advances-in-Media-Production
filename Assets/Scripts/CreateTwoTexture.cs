@@ -57,6 +57,7 @@ public class CreateTwoTexture : MonoBehaviour
     private void Update()
     {
         if (Left == null || Right == null) return;
+        if (_workerObject == null) return;
 		
 		Convert();
 
@@ -88,12 +89,11 @@ public class CreateTwoTexture : MonoBehaviour
     }
 
     private void CreateNewTexture(Texture liveCamTexture, StereoFormat format)
-    {
-        GetComponent<MaterialCreator>().Init(format == StereoFormat.VideoSample);
-		
+    {	
 		var imgWidth = liveCamTexture.width;
         var imgHeight = liveCamTexture.height;
         var deviceIndex = _liveCamera.Device.DeviceIndex;
+
         byte[] sampleData = null;
 
         switch (format)
@@ -115,16 +115,33 @@ public class CreateTwoTexture : MonoBehaviour
         }
 
         ScreenInfo.SetFormatInfo(Format);
+
         switch (format)
         {
             case StereoFormat.DemoMode:
+                GetComponent<MaterialCreator>().Init(true, true);
+
                 deviceIndex = -1;
                 sampleData = ReadSampleFromFile("16520");
 
                 break;
 
             case StereoFormat.VideoSample:
+                GetComponent<MaterialCreator>().Init(true, false);
+
                 deviceIndex = -1;
+
+                break;
+
+            default:
+                GetComponent<MaterialCreator>().Init(false, false);
+
+                if (imgWidth < 1920)
+                {
+                    Debug.Log("No valid camera attached. Image is smaller than 1920x1080.");
+                    return;
+                }
+
                 break;
         }
 
@@ -196,7 +213,10 @@ public class CreateTwoTexture : MonoBehaviour
 
     private void OnApplicationQuit()
     {
-        _workerObject.RequestStop();
-        _workerThread.Join();
+        if (_workerObject != null)
+        {
+            _workerObject.RequestStop();
+            _workerThread.Join();
+        }
     }
 }

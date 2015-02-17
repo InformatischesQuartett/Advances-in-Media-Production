@@ -15,7 +15,7 @@ public class MaterialCreator : MonoBehaviour
 	private bool _ready = false;
 
     // Use this for initialization
-    public void Init(bool flip)
+    public void Init(bool flipX, bool flipY)
     {
         _screenL = GameObject.Find("screenL");
         _screenR = GameObject.Find("screenR");
@@ -26,8 +26,8 @@ public class MaterialCreator : MonoBehaviour
 		_matL.SetColor("_Color", new Color(1, 1, 1));
         _matR.SetColor("_Color", new Color(1, 1, 1));
 
-        _matL.SetTextureScale("_MainTex", new Vector2((flip) ? -1 : 1, 1));
-        _matR.SetTextureScale("_MainTex", new Vector2((flip) ? -1 : 1, 1));
+        _matL.SetTextureScale("_MainTex", new Vector2((flipX) ? -1 : 1, (flipY) ? -1 : 1));
+        _matR.SetTextureScale("_MainTex", new Vector2((flipX) ? -1 : 1, (flipY) ? -1 : 1));
 
         _screenL.renderer.material = _matL;
         _screenR.renderer.material = _matR;
