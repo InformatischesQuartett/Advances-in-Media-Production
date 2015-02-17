@@ -156,19 +156,26 @@ public class InputSelector : MonoBehaviour {
 		if (_enableGUI) {
 			GUI.Label (new Rect (10, Screen.height / 1.2f, Screen.width, 50), "Input Selector", _fontStyle);
 
-			if (GUI.Button (new Rect (10, Screen.height / 1.5f, 60, 60), "Done")) {
+			if (GUI.Button (new Rect (80, Screen.height / 1.5f, 60, 60), "Done")) {
 				_done = true;
 			}
 			/*Selection of the Video Input*/
-			GUI.Label(new Rect (10, Screen.height / 1.9f, Screen.width, 50),"Select a video input:");
+			GUI.Label(new Rect (10, Screen.height / 1.9f, Screen.width, 50),"Select a Video Input:");
 
 			/*Selection of the Framerate*/
+			GUI.Label(new Rect (10, Screen.height / 1.8f, Screen.width, 50),"Select a Framerate:");
 
 			/*Selection of the Mode*/
+			GUI.Label(new Rect (10, Screen.height / 1.7f, Screen.width, 50),"Select a Camera Mode:");
 
 			/*Selection of the Resolution*/
+			GUI.Label(new Rect (10, Screen.height / 1.6f, Screen.width, 50),"Select a Resolution:");
 
 			/*Demo Mode*/
+			if (GUI.Button (new Rect (10, Screen.height / 1.5f, 60, 60), "Demo")) {
+				_done = true;
+				loadDemoMode();
+			}
 
 			//GUILayout.EndScrollView();
 
@@ -179,6 +186,10 @@ public class InputSelector : MonoBehaviour {
 
 	/*Loading Default Settings if nothing was selected*/
 	void loadDefaultSettings () {
+	}
+
+	/*Loading the Application with a Demo 3d video*/
+	void loadDemoMode () {
 	}
 } //end class
 
