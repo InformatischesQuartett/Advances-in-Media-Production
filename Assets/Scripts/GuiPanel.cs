@@ -55,17 +55,19 @@ public class GuiPanel : MonoBehaviour
         {
             var s = new Vector2(Config.CurrentPreset.ScreenSize*Config.AspectRatioNorm.x,
                 Config.CurrentPreset.ScreenSize*Config.AspectRatioNorm.z);
-            _info.UpdateInfo(Config.CurrentPreset.Name, Config.CurrentPreset.ScreenDistance, s);
+            _info.UpdateInfo(Config.CurrentPreset.Name, Config.CurrentPreset.ScreenDistance, s, _screens.Hit, new Color(1,1,1));
         }
         else
         {
             var s = new Vector2(_screens.ScreenSize*Config.AspectRatioNorm.x,
                 _screens.ScreenSize*Config.AspectRatioNorm.z);
-            _info.UpdateInfo("No Preset", _screens.ScreenDistance, s);
+            _info.UpdateInfo("No Preset", _screens.ScreenDistance, s, _screens.Hit, new Color(1, 1, 1));
         }
         newText = "Preset: " + _info.Name + "\nDistance: " + _info.Distance.ToString("0.00") + "\nScreen Width: " +
                   _info.Size.x.ToString("0.00") +
-                  "\nScreen Height: " + _info.Size.y.ToString("0.00");
+                  "\nScreen Height: " + _info.Size.y.ToString("0.00") +
+                  "\nHIT: " + _info.HIT+
+                  "\nBackground Color (RGB): \n" + _info.BackgroundColor.r + "," +_info.BackgroundColor.g+ ","+_info.BackgroundColor.b;
         _configurableSettingsText.text = newText;
     }
 
@@ -104,12 +106,16 @@ public class GuiPanel : MonoBehaviour
         public string Name { get; private set; }
         public float Distance { get; private set; }
         public Vector2 Size { get; private set; }
+        public float HIT { get; private set; }
+        public Color BackgroundColor { get; private set; }
 
-        public void UpdateInfo(string name, float distance, Vector2 size)
+        public void UpdateInfo(string name, float distance, Vector2 size, float hit, Color bgColor)
         {
             Name = name;
             Distance = distance;
             Size = size;
+            HIT = hit;
+            BackgroundColor = bgColor;
         }
     }
 }
