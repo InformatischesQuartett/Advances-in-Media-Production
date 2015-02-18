@@ -10,7 +10,7 @@ public class CreateTwoTexture : MonoBehaviour
 {
     private AVProLiveCamera _liveCamera;
 
-    public StereoFormat Format;
+    //public StereoFormat Format;
 
     private byte[] _lastImgLeft;
     private byte[] _lastImgRight;
@@ -80,7 +80,7 @@ public class CreateTwoTexture : MonoBehaviour
 
         byte[] sampleData = null;
 
-        if (Format == StereoFormat.SideBySide)
+        if (Config.CurrentFormat == StereoFormat.SideBySide)
         {
             Left = new Texture2D(imgWidth/2, imgHeight, TextureFormat.RGB24, false);
             Right = new Texture2D(imgWidth/2, imgHeight, TextureFormat.RGB24, false);
@@ -91,10 +91,8 @@ public class CreateTwoTexture : MonoBehaviour
             Right = new Texture2D(imgWidth, imgHeight, TextureFormat.RGB24, false);
         }
 
-       // ScreenInfo.SetFormatInfo(Format);
-
         // format checking and material initialization
-        switch (Format)
+		switch (Config.CurrentFormat)
         {
             case StereoFormat.DemoMode:
                 GetComponent<MaterialCreator>().Init(true, true);
@@ -142,7 +140,7 @@ public class CreateTwoTexture : MonoBehaviour
                 break;
         }
 
-        _workerObject = new CVThread(1920, 1080, Format, UpdateImgData, sampleData);
+		_workerObject = new CVThread(1920, 1080, Config.CurrentFormat, UpdateImgData, sampleData);
         _workerThread = new Thread(_workerObject.ProcessImage);
         _workerThread.Start();
     }

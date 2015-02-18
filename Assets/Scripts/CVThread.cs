@@ -110,8 +110,8 @@ public unsafe class CVThread
 
         _convCallback = callback;
 
-        _deviceID1 = Config.AVDevice1.DeviceIndex;
-		_deviceID2 = Config.AVDevice2.DeviceIndex;
+        _deviceID1 = (Config.AVDevice1 != null) ? Config.AVDevice1.DeviceIndex : -1;
+		_deviceID2 = (Config.AVDevice2 != null) ? Config.AVDevice2.DeviceIndex : -1;
 
         _frameRate = 60;
 

@@ -93,7 +93,6 @@ public static class Config {
         SetAspectRatioNorm(conf.AspectRatioNorm);
 
         Monoscopic = conf.Monoscopic;
-        OVRManager.instance.monoscopic = Monoscopic;
 
         for (int i = 0; i < conf.Colors.Length; i++)
         {
@@ -127,6 +126,9 @@ public static class Config {
 
         _currentColorIndex = 0;
         _currentPresetIndex = 0;
+
+		// default mode
+		CurrentFormat = StereoFormat.VideoSample;
     }
 
     private static void SetAspectRatioNorm(string arn)
@@ -167,6 +169,12 @@ public static class Config {
         File.WriteAllText(_presetPath + "/" + preset.Name + ".json", json);
 
         Presets.Add(preset);
+    }
+
+    public static void Init()
+    {
+        //Calling this in the constructor makes it too static!
+        OVRManager.instance.monoscopic = Monoscopic;
     }
 
     private struct ConfigSet
