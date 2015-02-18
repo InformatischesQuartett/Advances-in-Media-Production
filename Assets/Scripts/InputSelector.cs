@@ -169,16 +169,18 @@ public class InputSelector : MonoBehaviour {
 				NewSelection(4);
 			}
 
-
-
 			if (_currSelection == 0 || _currSelection == 1) {
-				/*----> Start vertical control group. <----*/
-				GUILayout.BeginVertical("box", GUILayout.MaxWidth(300));
-				AVProLiveCameraDevice device = AVProLiveCameraManager.Instance.GetDevice(0);
-				/*Create a camera rectangle*/
-				Rect cameraRect = GUILayoutUtility.GetRect(300, 168);
-				GUILayout.Box("Camera 1: "  + device.Name);
-				GUILayout.EndVertical();
+				if (AVProLiveCameraManager.Instance.NumDevices > 0) {
+					/*----> Start vertical control group. <----*/
+					GUILayout.BeginVertical("box", GUILayout.MaxWidth(300));
+					AVProLiveCameraDevice device = AVProLiveCameraManager.Instance.GetDevice(0);
+					/*Create a camera rectangle*/
+					Rect cameraRect = GUILayoutUtility.GetRect(300, 168);
+					GUILayout.Box("Camera 1: "  + device.Name);
+					GUILayout.EndVertical();
+				} else {
+					GUILayout.Label("Caution: There is no camera connected! The Sony camera needs to be in the first HDMI-In slot.");
+				}
 			}
 
 			if (_currSelection == 2) {
@@ -196,14 +198,12 @@ public class InputSelector : MonoBehaviour {
 					GUILayout.Box("Camera 2: "  + device2.Name);
 					GUILayout.EndVertical();
 				} else {
-					GUILayout.Label("Caution: There are no two cameras connected!");
+					GUILayout.Label("Caution: There are no two cameras connected! The Input has to be SDI or maybe you have chosen the wrong mode.");
 				}
 			}
 
-
 			GUILayout.EndScrollView();
 			/*----> End horizontal scrollview area <----*/
-
 
 			GUI.Label (new Rect (10, Screen.height / 1.2f, Screen.width, 50), "Input Selector", _fontStyle);
 
@@ -230,8 +230,7 @@ public class InputSelector : MonoBehaviour {
 			}
 		}
 
-		Debug.Log ("Nothing sected");
-
+		Debug.Log ("Nothing selected");
 	}
 
 	/**
@@ -260,8 +259,6 @@ public class InputSelector : MonoBehaviour {
 		}
 		if (_selectedMode[3]) {
 			Config.CurrentFormat = StereoFormat.VideoSample;
-
-
 		}
 		if (_selectedMode[4]) {
 			Config.CurrentFormat = StereoFormat.DemoMode;
