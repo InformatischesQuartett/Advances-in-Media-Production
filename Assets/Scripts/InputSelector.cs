@@ -234,11 +234,6 @@ public class InputSelector : MonoBehaviour {
 			/*Display selected Modes*/
 			GUI.Label (new Rect (10, Screen.height / 1.1f, Screen.width, 50), "Your selected Video Device(s):");
 
-			if (GUI.Button (new Rect (80, Screen.height / 1.1f, 60, 60), "Reset")) {
-				resetChosenDevices();
-			}
-
-
 			GUI.Label (new Rect (10, Screen.height / 1.2f, Screen.width, 50), "Input Selector", _fontStyle);
 
 			if (GUI.Button (new Rect (80, Screen.height / 1.5f, 60, 60), "Done")) {
