@@ -37,7 +37,7 @@ public class CreateTwoTexture : MonoBehaviour
 
         yield return new WaitForSeconds(1);
 
-        CreateNewTexture(_liveCamera.OutputTexture, Format);
+        CreateNewTexture();
 
         _imgDataUpdate = false;
 
@@ -70,22 +70,13 @@ public class CreateTwoTexture : MonoBehaviour
     }
     private void OnGUI()
     {
-		/*
-        if (_liveCamera.OutputTexture != null && Left != null && Right != null)
-        {
-            //GUI.DrawTexture(new Rect(250, 0, 200, 200), _liveCamera.OutputTexture, ScaleMode.ScaleToFit, false);
-            GUI.DrawTexture(new Rect(150, 100, 400, 224), Left, ScaleMode.ScaleToFit, false);
-            GUI.DrawTexture(new Rect(150, 350, 400, 224), Right, ScaleMode.ScaleToFit, false);
-        }*/
-
         GUI.Label(new Rect(5, 0, 250, 25), "Performance: " + _threadFPS.ToString("F1") + " fps");
     }
 
-    private void CreateNewTexture(Texture liveCamTexture, StereoFormat format)
+    private void CreateNewTexture()
     {	
-		var imgWidth = liveCamTexture.width;
-        var imgHeight = liveCamTexture.height;
-        var deviceIndex = _liveCamera.Device.DeviceIndex;
+		var imgWidth = 1920;//liveCamTexture.width;
+		var imgHeight = 1080;//liveCamTexture.height;
 
         byte[] sampleData = null;
 
@@ -103,21 +94,16 @@ public class CreateTwoTexture : MonoBehaviour
         ScreenInfo.SetFormatInfo(Format);
 
         // format checking and material initialization
-        switch (format)
+        switch (Format)
         {
             case StereoFormat.DemoMode:
                 GetComponent<MaterialCreator>().Init(true, true);
-
-                deviceIndex = -1;
                 sampleData = ReadSampleFromFile("16520");
 
                 break;
 
             case StereoFormat.VideoSample:
                 GetComponent<MaterialCreator>().Init(true, false);
-
-                deviceIndex = -1;
-
                 break;
 
             case StereoFormat.TwoCameras:
@@ -156,7 +142,7 @@ public class CreateTwoTexture : MonoBehaviour
                 break;
         }
 
-        _workerObject = new CVThread(1920, 1080, Format, UpdateImgData, deviceIndex, -1, sampleData);
+        _workerObject = new CVThread(1920, 1080, Format, UpdateImgData, sampleData);
         _workerThread = new Thread(_workerObject.ProcessImage);
         _workerThread.Start();
     }

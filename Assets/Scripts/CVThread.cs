@@ -95,8 +95,7 @@ public unsafe class CVThread
 
     private readonly byte[] _imgData;
 
-    public CVThread(int width, int height, StereoFormat mode, ConvDataCallback callback, int dID1 = -1, int dID2 = -1,
-        byte[] imgData = null)
+    public CVThread(int width, int height, StereoFormat mode, ConvDataCallback callback, byte[] imgData = null)
     {
         _runCounter = 0;
         _shouldStop = false;
@@ -111,8 +110,8 @@ public unsafe class CVThread
 
         _convCallback = callback;
 
-        _deviceID1 = dID1;
-        _deviceID2 = dID2;
+        _deviceID1 = Config.AVDevice1.DeviceIndex;
+		_deviceID2 = Config.AVDevice2.DeviceIndex;
 
         _frameRate = 60;
 

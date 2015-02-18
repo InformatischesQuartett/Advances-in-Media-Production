@@ -8,6 +8,9 @@ public static class Config {
     private static readonly string _configPath = Application.streamingAssetsPath;
     private static readonly string _presetPath = Application.streamingAssetsPath + @"/Presets";
 
+	public static AVProLiveCameraDevice AVDevice1 { get; set; }
+	public static AVProLiveCameraDevice AVDevice2 { get; set; }
+
     public static float ScreenDistanceDefault { get; private set; }
     public static float ScreenDistanceSensitivity { get; private set; }
     public static float ScreenSizeDefault { get; private set; }
