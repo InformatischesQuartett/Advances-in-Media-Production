@@ -257,7 +257,7 @@ public class InputSelector : MonoBehaviour {
 			}
 
 			if (_helpPressed) {
-				GUI.Label (new Rect (Screen.width/ 1.6f, 40, 150, 400), "This is Cyclops - a S3D camera viewfinder for composition on set. You'll need a Sony3D or two Canon EOS C300 cameras plus the Oculus Rift DK2. Please read the documentation for further information.\n Application created by Fabian Gaertner, Sarah Haefele, Alexander Scheurer and Linda Schey for the subject Advanced Media Production at Hochschule Furtwangen in January 2015.");
+				GUI.Label (new Rect (Screen.width/ 1.6f, 40, 160, 400), "This is Cyclops - a S3D camera viewfinder for composition on set. You'll need a Sony3D or two Canon EOS C300 cameras plus the Oculus Rift DK2. Please read the documentation for further information.\n Application created by Fabian Gaertner, Sarah Haefele, Alexander Scheurer and Linda Schey for the subject Advanced Media Production at Hochschule Furtwangen in January 2015.");
 			}
 
 		} else {
