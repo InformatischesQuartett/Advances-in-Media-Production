@@ -236,14 +236,14 @@ public class InputSelector : MonoBehaviour {
 				}
 			}
 
+			if (GUILayout.Button ("Done")) {
+				loadApplication ();
+			}
+
 			GUILayout.EndScrollView();
 			/*----> End horizontal scrollview area <----*/
 
 			GUI.Label (new Rect (10, Screen.height / 1.2f, Screen.width, 50), "Input Selector", _fontStyle);
-
-			if (GUI.Button (new Rect (80, Screen.height / 1.5f, 60, 60), "Done")) {
-				loadApplication ();
-			}
 
 
 		} else {
