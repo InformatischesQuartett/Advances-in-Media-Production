@@ -39,7 +39,7 @@ public class GuiPanel : MonoBehaviour
         string staticText = scopic + "\n" + Config.CurrentFormat + "\nAspectratio: " + Config.AspectRatio;
         _staticSettingsText.text = staticText;
 
-        transform.position = new Vector3(0, -120, 70);
+        transform.position = new Vector3(0, -130, 70);
         transform.eulerAngles = new Vector3(90, 0, 0);
         transform.localScale = new Vector3(1, 1, 1);
         GetComponent<Canvas>().GetComponent<Image>().color = new Color(1, 1, 1, 0.2f);
@@ -67,7 +67,7 @@ public class GuiPanel : MonoBehaviour
                   _info.Size.x.ToString("0.00") +
                   "\nScreen Height: " + _info.Size.y.ToString("0.00") +
                   "\nHIT: " + _info.HIT.ToString("0.00") +
-                  "\nBackground Color (RGB): \n" + _info.BackgroundColor.r + "," +_info.BackgroundColor.g+ ","+_info.BackgroundColor.b;
+                  "\nBackground Color (RGB): " + _info.BackgroundColor.r + "," +_info.BackgroundColor.g+ ","+_info.BackgroundColor.b;
         _configurableSettingsText.text = newText;
     }
 
@@ -90,7 +90,7 @@ public class GuiPanel : MonoBehaviour
             else
             {
                 //set gui pos to bottom
-                transform.position = new Vector3(0, -120, 70);
+                transform.position = new Vector3(0, -130, 70);
                 transform.eulerAngles = new Vector3(90, 0, 0);
                 transform.localScale = new Vector3(1, 1, 1);
                 GetComponent<Canvas>().GetComponent<Image>().color = new Color(1, 1, 1, 0.2f);
