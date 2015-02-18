@@ -4,14 +4,14 @@ using UnityEngine.UI;
 public class GuiPanel : MonoBehaviour
 {
     private Text _configurableSettingsText;
+    private bool _gui;
+    private Sprite _guiSprite;
     private Info _info;
     private ScreenControlls _screens;
     private Text _staticSettingsText;
     private Text[] _texts;
-    private bool _gui;
-    // Use this for initialization
 
-    public Sprite sp;
+    // Use this for initialization
     private void Awake()
     {
         _screens = FindObjectOfType<ScreenControlls>();
@@ -39,13 +39,13 @@ public class GuiPanel : MonoBehaviour
         string staticText = scopic + "\n" + Config.CurrentFormat + "\nAspectratio: " + Config.AspectRatio;
         _staticSettingsText.text = staticText;
 
-        this.transform.position = new Vector3(0, -120, 70);
-        this.transform.eulerAngles = new Vector3(90, 0, 0);
-        this.transform.localScale = new Vector3(1, 1, 1);
+        transform.position = new Vector3(0, -120, 70);
+        transform.eulerAngles = new Vector3(90, 0, 0);
+        transform.localScale = new Vector3(1, 1, 1);
         GetComponent<Canvas>().GetComponent<Image>().color = new Color(1, 1, 1, 0.2f);
         GetComponent<Canvas>().GetComponent<Image>().color = new Color(1, 1, 1, 1);
-        sp = Resources.Load<Sprite>("Textures/background");
-        
+        _guiSprite = Resources.Load<Sprite>("Textures/background");
+        GetComponent<Canvas>().GetComponent<Image>().sprite = _guiSprite;
     }
 
     private void UpdateGuiText()
@@ -63,7 +63,9 @@ public class GuiPanel : MonoBehaviour
                 _screens.ScreenSize*Config.AspectRatioNorm.z);
             _info.UpdateInfo("No Preset", _screens.ScreenDistance, s);
         }
-        newText = "Preset: " + _info.Name + "\nDistance: " + _info.Distance + "\nSize: " + _info.Size;
+        newText = "Preset: " + _info.Name + "\nDistance: " + _info.Distance.ToString("0.00") + "\nScreen Width: " +
+                  _info.Size.x.ToString("0.00") +
+                  "\nScreen Height: " + _info.Size.y.ToString("0.00");
         _configurableSettingsText.text = newText;
     }
 
@@ -73,31 +75,30 @@ public class GuiPanel : MonoBehaviour
         //Toggel View Gui infront of Camera or on the floor
         if (Input.GetButtonUp("Set Gui Position"))
         {
-
             if (_gui == false)
             {
                 //Set gui pos to camera view
-                this.transform.position = new Vector3(0, 0, 0.1f);
-                this.transform.eulerAngles = new Vector3(0,0,0);
-                this.transform.localScale = new Vector3(0.001f, 0.001f, 1);
-                GetComponent<Canvas>().GetComponent<Image>().color = new Color(0,0,0,0.2f);
+                transform.position = new Vector3(0, 0, 0.1f);
+                transform.eulerAngles = new Vector3(0, 0, 0);
+                transform.localScale = new Vector3(0.001f, 0.001f, 1);
+                GetComponent<Canvas>().GetComponent<Image>().color = new Color(0, 0, 0, 0.2f);
                 GetComponent<Canvas>().GetComponent<Image>().sprite = null;
                 _gui = true;
             }
             else
             {
                 //set gui pos to bottom
-                this.transform.position = new Vector3(0,-120,70);
-                this.transform.eulerAngles = new Vector3(90,0,0);
-                this.transform.localScale = new Vector3(1,1,1);
+                transform.position = new Vector3(0, -120, 70);
+                transform.eulerAngles = new Vector3(90, 0, 0);
+                transform.localScale = new Vector3(1, 1, 1);
                 GetComponent<Canvas>().GetComponent<Image>().color = new Color(1, 1, 1, 0.2f);
-                GetComponent<Canvas>().GetComponent<Image>().color = new Color(1,1,1, 1);
-                GetComponent<Canvas>().GetComponent<Image>().sprite = Resources.Load<Sprite>("Textures/background");
+                GetComponent<Canvas>().GetComponent<Image>().color = new Color(1, 1, 1, 1);
+                GetComponent<Canvas>().GetComponent<Image>().sprite = _guiSprite;
                 _gui = false;
             }
         }
     }
-    
+
     private class Info
     {
         public string Name { get; private set; }
