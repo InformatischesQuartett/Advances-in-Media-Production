@@ -152,6 +152,7 @@ public class ScreenControlls : MonoBehaviour
         foreach (GameObject cam in _cameras)
         {
             cam.camera.backgroundColor = color;
+            Config.CurrentColor = color;
         }
     }
 
