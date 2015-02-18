@@ -25,12 +25,8 @@ public class InputSelector : MonoBehaviour {
 	private int _currSelection = -1;
 
 	/*positions for the GUI scroll elements*/
-	private List<Vector2> _scrollPos = new List<Vector2>();
-	private List<Vector2> _scrollVideoInputPos = new List<Vector2>();
 	private Vector2 _horizScrollPos = Vector2.zero;
-	private Vector2 _horizScrollPos2 = Vector2.zero;
 
-	private List<AVProLiveCameraDevice> chosenDevices = new List<AVProLiveCameraDevice>();
 	private AVProLiveCameraDevice _chosenDevice1;
 	private AVProLiveCameraDevice _chosenDevice2;
 
@@ -92,8 +88,6 @@ public class InputSelector : MonoBehaviour {
 		for (int i = 0; i < numDevices; i++)
 		{
 			AVProLiveCameraDevice device = AVProLiveCameraManager.Instance.GetDevice(i);
-			_scrollPos.Add(new Vector2(0, 0));
-			_scrollVideoInputPos.Add(new Vector2(0, 0));
 		}		
 	}
 
@@ -147,15 +141,14 @@ public class InputSelector : MonoBehaviour {
 			GUILayout.Label("Please select a mode from the list below:");
 
 			/*Sony Side by Side*/
-
 			if (GUILayout.Toggle(_selectedMode[0], "Sony, Side by Side")) {
 				NewSelection(0);
-				/*Mode 5 is side by side mode*/
 				if (_currSelection != lastSelection) {
 					AVProLiveCameraManager.Instance.GetDevice(0).Close();
 					if (AVProLiveCameraManager.Instance.NumDevices > 1) {
 						AVProLiveCameraManager.Instance.GetDevice(1).Close();
 					}
+					/*Mode 5 is side by side mode*/
 					AVProLiveCameraManager.Instance.GetDevice(0).Start(5,-1);
 				}
 			}
@@ -164,11 +157,12 @@ public class InputSelector : MonoBehaviour {
 				NewSelection(1);
 				if (_currSelection != lastSelection) {
 					if (AVProLiveCameraManager.Instance.NumDevices > 0) {
-						/*Mode 19 is framepacking mode*/
+
 						AVProLiveCameraManager.Instance.GetDevice(0).Close();
 						if (AVProLiveCameraManager.Instance.NumDevices > 1) {
 							AVProLiveCameraManager.Instance.GetDevice(1).Close();
 						}
+						/*Mode 19 is framepacking mode*/
 						AVProLiveCameraManager.Instance.GetDevice(0).Start (19, -1);
 					}
 				}
@@ -238,7 +232,11 @@ public class InputSelector : MonoBehaviour {
 			GUILayout.BeginVertical("box", GUILayout.MaxWidth(300));
 			GUILayout.Label("If there are no cameras detected there could be a problem with the Blackmagic options. You need to configure them in the Control Center.");
 			if (GUILayout.Button ("Open Blackmagic Control Center")) {
-
+				try {
+				Application.OpenURL("C:Program Files/...");
+				} catch (UnityException e) {
+					Debug.Log ("There is no program like this installed");
+				}
 			}
 			GUILayout.EndVertical();
 			if (GUILayout.Button ("Done")) {
