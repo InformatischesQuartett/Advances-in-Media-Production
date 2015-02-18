@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -7,34 +7,46 @@ public class InputSelector : MonoBehaviour {
 
 	private Texture2D _backgroundTex;
 	private GUIStyle _fontStyle;
-	private float _counter;
+
 	private float _waitingTime;
 
 	private bool _enableGUI;
 	private bool _done;
 	private bool _inputSelected;
 
+	/*positions for the GUI scroll elements*/
+	private List<Vector2> _scrollPos = new List<Vector2>();
 	private List<Vector2> _scrollVideoInputPos = new List<Vector2>();
 	private Vector2 _horizScrollPos = Vector2.zero;
+	private Vector2 _horizScrollPos2 = Vector2.zero;
 
-
-	// Use this for initialization
+	private List<AVProLiveCameraDevice> chosenDevices = new List<AVProLiveCameraDevice>();
+	
 	void Start () {
+		/* Makes the application run even when in background*/
+		Application.runInBackground = true;
+
+		EnumerateDevices ();
+
+		/*Boolean values for the gui*/
 		_enableGUI = true;
 		_done = false;
 		_inputSelected = false;
 
+		/*Design*/
 		_backgroundTex = (Texture2D) Resources.Load ("Textures/background", typeof(Texture2D));
 		_fontStyle = new GUIStyle();
 		_fontStyle.font = (Font) Resources.Load("Fonts/BNKGOTHM");
 		_fontStyle.normal.textColor = Color.white;
 		_fontStyle.fontSize = 30;
 
+		/*Waiting time till the application is automatically started*/
 		_waitingTime = Time.time + 15;
 
-
+		/*Gets number of all camera devices found*/
 		int numDevices = AVProLiveCameraManager.Instance.NumDevices;
 
+		/*Creates new virtual AVProLiveCamera devices for each camera device found*/
 		for (int i = 0; i < numDevices; i++) {
 			AVProLiveCameraDevice device = AVProLiveCameraManager.Instance.GetDevice (i);
 			Debug.Log(device);
@@ -44,13 +56,6 @@ public class InputSelector : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		if (_inputSelected) {
-			if (_done) {
-				_enableGUI = false;
-				Application.LoadLevel("default");
-			}
-		}
-
 		if (!_inputSelected) {
 
 			float timeLeft = _waitingTime - Time.time; 
@@ -113,8 +118,8 @@ public class InputSelector : MonoBehaviour {
 				}
 			}
 			
-			//_scrollPos.Add(new Vector2(0, 0));
-			//_scrollVideoInputPos.Add(new Vector2(0, 0));
+			_scrollPos.Add(new Vector2(0, 0));
+			_scrollVideoInputPos.Add(new Vector2(0, 0));
 		}		
 	}
 
@@ -151,14 +156,51 @@ public class InputSelector : MonoBehaviour {
 		/*Draw Background tex*/
 		GUI.DrawTexture (new Rect (0, 0, Screen.width, Screen.height), _backgroundTex);
 
-		//_horizScrollPos = GUILayout.BeginScrollView(_horizScrollPos, false, false);
-
 		if (_enableGUI) {
+			/*----> Start horizontal scrollview area <----*/
+			_horizScrollPos = GUILayout.BeginScrollView(_horizScrollPos, false, false);
+			GUILayout.Label("Please select a video device by clicking on it:");
+
+			for (int i = 0; i < AVProLiveCameraManager.Instance.NumDevices; i++){
+				/*----> Start vertical control group. <----*/
+				GUILayout.BeginVertical("box", GUILayout.MaxWidth(300));
+				AVProLiveCameraDevice device = AVProLiveCameraManager.Instance.GetDevice(i);
+
+				/*GUI is only enabled if a device is connected*/
+				GUI.enabled = device.IsConnected;
+
+
+
+				/*Create a camera rectangle*/
+				Rect cameraRect = GUILayoutUtility.GetRect(300, 168);
+				if (GUI.Button(cameraRect, device.OutputTexture)) {
+					/*choose camera by clicking on this button*/
+					chosenDevices.Add(AVProLiveCameraManager.Instance.GetDevice(i));
+				}
+				          
+				GUILayout.Box("Camera " + i + ": " + device.Name);
+
+				/*----> End vertical control group. <----*/
+				GUILayout.EndVertical();
+			}
+
+			GUILayout.EndScrollView();
+			/*----> End horizontal scrollview area <----*/
+
+			/*Display selected Modes*/
+			GUI.Label (new Rect (10, Screen.height / 1.1f, Screen.width, 50), "Your selected Video Device(s):");
+
+			if (GUI.Button (new Rect (80, Screen.height / 1.1f, 60, 60), "Reset")) {
+				resetChosenDevices();
+			}
+
+
 			GUI.Label (new Rect (10, Screen.height / 1.2f, Screen.width, 50), "Input Selector", _fontStyle);
 
 			if (GUI.Button (new Rect (80, Screen.height / 1.5f, 60, 60), "Done")) {
-				_done = true;
+				loadApplication ();
 			}
+
 			/*Selection of the Video Input*/
 			GUI.Label(new Rect (10, Screen.height / 1.9f, Screen.width, 50),"Select a Video Input:");
 
@@ -169,15 +211,21 @@ public class InputSelector : MonoBehaviour {
 			GUI.Label(new Rect (10, Screen.height / 1.7f, Screen.width, 50),"Select a Camera Mode:");
 
 			/*Selection of the Resolution*/
-			GUI.Label(new Rect (10, Screen.height / 1.6f, Screen.width, 50),"Select a Resolution:");
+			//GUI.Label(new Rect (10, Screen.height / 1.6f, Screen.width, 50),"Select a Resolution:");
 
-			/*Demo Mode*/
-			if (GUI.Button (new Rect (10, Screen.height / 1.5f, 60, 60), "Demo")) {
-				_done = true;
-				loadDemoMode();
+
+			/*Demo Modes*/
+			GUI.Label(new Rect (10, Screen.height / 1.6f, Screen.width, 50),"Or choose one of the Demos:");
+
+			if (GUI.Button (new Rect (10, Screen.height / 1.5f, 60, 60), "Demo1: S3D Trailer")) {
+				//set demo mode
 			}
 
-			//GUILayout.EndScrollView();
+			if (GUI.Button (new Rect (10, Screen.height / 1.5f, 60, 60), "Demo1: S3D Trailer")) {
+				//set demo mode
+			}
+
+
 
 		} else {
 			GUI.Label (new Rect (10, Screen.height / 1.2f, Screen.width, 50), "Input selected. Please put on your OVR-Device now.", _fontStyle);
@@ -185,11 +233,23 @@ public class InputSelector : MonoBehaviour {
 	}//end OnGUI
 
 	/*Loading Default Settings if nothing was selected*/
-	void loadDefaultSettings () {
+	private void loadDefaultSettings () {
 	}
 
-	/*Loading the Application with a Demo 3d video*/
-	void loadDemoMode () {
+	private void loadApplication () {
+		//if 1 or 2 device selected or demo selected 
+		_enableGUI = false;
+		Application.LoadLevel("default");
+
+		//else: error/ warning
+	}
+
+	private void resetChosenDevices() {
+		//demo mode false
+
+		//remove all chosen devices
+
+		//remove all modes
 	}
 } //end class
 
