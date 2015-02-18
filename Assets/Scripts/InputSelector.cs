@@ -159,77 +159,57 @@ public class InputSelector : MonoBehaviour {
 				NewSelection(2);
 			}
 
+			/*Demo mode Video S3D*/
+			if (GUILayout.Toggle(_selectedMode[3], "Demo: Video S3D")) {
+				NewSelection(3);
+			}
 
+			/*Demo mode Freeze Image*/
+			if (GUILayout.Toggle(_selectedMode[4], "Demo: Freeze Image")) {
+				NewSelection(4);
+			}
 
 			if (_currSelection == 0 || _currSelection == 1) {
-				/*----> Start vertical control group. <----*/
-				GUILayout.BeginVertical("box", GUILayout.MaxWidth(300));
+				if (AVProLiveCameraManager.Instance.NumDevices > 0) {
+					/*----> Start vertical control group. <----*/
+					GUILayout.BeginVertical("box", GUILayout.MaxWidth(300));
+					AVProLiveCameraDevice device = AVProLiveCameraManager.Instance.GetDevice(0);
+					/*Create a camera rectangle*/
+					Rect cameraRect = GUILayoutUtility.GetRect(300, 168);
+					GUILayout.Box("Camera 1: "  + device.Name);
+					GUILayout.EndVertical();
+				} else {
+					GUILayout.Label("Caution: There is no camera connected! The Sony camera needs to be in the first HDMI-In slot.");
+				}
 			}
 
 			if (_currSelection == 2) {
-			}
+				/*----> Start vertical control group. <----*/
+				if (AVProLiveCameraManager.Instance.NumDevices > 1) {
+					GUILayout.BeginVertical("box", GUILayout.MaxWidth(300));
+					AVProLiveCameraDevice device1 = AVProLiveCameraManager.Instance.GetDevice(0);
+					/*Create a camera rectangle*/
+					Rect cameraRect1 = GUILayoutUtility.GetRect(300, 168);
+					GUILayout.Box("Camera 1: "  + device1.Name);
 
-
-			for (int i = 0; i < AVProLiveCameraManager.Instance.NumDevices; i++){
-
-				GUILayout.BeginVertical("box", GUILayout.MaxWidth(300));
-				AVProLiveCameraDevice device = AVProLiveCameraManager.Instance.GetDevice(i);
-
-				/*GUI is only enabled if a device is connected*/
-				GUI.enabled = device.IsConnected;
-
-
-
-				/*Create a camera rectangle*/
-				Rect cameraRect = GUILayoutUtility.GetRect(300, 168);
-				if (GUI.Button(cameraRect, device.OutputTexture)) {
-					/*choose camera by clicking on this button*/
-					chosenDevices.Add(AVProLiveCameraManager.Instance.GetDevice(i));
+					AVProLiveCameraDevice device2 = AVProLiveCameraManager.Instance.GetDevice(1);
+					/*Create a camera rectangle*/
+					Rect cameraRect2 = GUILayoutUtility.GetRect(300, 168);
+					GUILayout.Box("Camera 2: "  + device2.Name);
+					GUILayout.EndVertical();
+				} else {
+					GUILayout.Label("Caution: There are no two cameras connected! The Input has to be SDI or maybe you have chosen the wrong mode.");
 				}
-				          
-				GUILayout.Box("Camera " + i + ": " + device.Name);
-
-				/*----> End vertical control group. <----*/
-				GUILayout.EndVertical();
 			}
-
 
 			GUILayout.EndScrollView();
 			/*----> End horizontal scrollview area <----*/
-
-			/*Display selected Modes*/
-			GUI.Label (new Rect (10, Screen.height / 1.1f, Screen.width, 50), "Your selected Video Device(s):");
 
 			GUI.Label (new Rect (10, Screen.height / 1.2f, Screen.width, 50), "Input Selector", _fontStyle);
 
 			if (GUI.Button (new Rect (80, Screen.height / 1.5f, 60, 60), "Done")) {
 				loadApplication ();
 			}
-
-			/*Selection of the Video Input*/
-			GUI.Label(new Rect (10, Screen.height / 1.9f, Screen.width, 50),"Select a Video Input:");
-
-			/*Selection of the Framerate*/
-			GUI.Label(new Rect (10, Screen.height / 1.8f, Screen.width, 50),"Select a Framerate:");
-
-			/*Selection of the Mode*/
-			GUI.Label(new Rect (10, Screen.height / 1.7f, Screen.width, 50),"Select a Camera Mode:");
-
-			/*Selection of the Resolution*/
-			//GUI.Label(new Rect (10, Screen.height / 1.6f, Screen.width, 50),"Select a Resolution:");
-
-
-			/*Demo Modes*/
-			GUI.Label(new Rect (10, Screen.height / 1.6f, Screen.width, 50),"Or choose one of the Demos:");
-
-			if (GUI.Button (new Rect (10, Screen.height / 1.5f, 60, 60), "Demo1: S3D Trailer")) {
-				//set demo mode
-			}
-
-			if (GUI.Button (new Rect (10, Screen.height / 1.5f, 60, 60), "Demo1: S3D Trailer")) {
-				//set demo mode
-			}
-
 
 
 		} else {
@@ -250,8 +230,7 @@ public class InputSelector : MonoBehaviour {
 			}
 		}
 
-		Debug.Log ("Nothing sected");
-
+		Debug.Log ("Nothing selected");
 	}
 
 	/**
@@ -263,23 +242,26 @@ public class InputSelector : MonoBehaviour {
 			_chosenDevice1 = AVProLiveCameraManager.Instance.GetDevice(0);
 			/*Mode 5 is side by side*/
 			_chosenDevice1.Start();
+			Config.CurrentFormat = StereoFormat.SideBySide;
 		} 
 		if (_selectedMode[1]) {
 			_chosenDevice1 = AVProLiveCameraManager.Instance.GetDevice(0);
 			/*Mode 19 is framepacking mode*/
 			_chosenDevice1.Start(19, -1);
+			Config.CurrentFormat = StereoFormat.FramePacking;
 		}
 		if (_selectedMode[2]) {
 			_chosenDevice1 = AVProLiveCameraManager.Instance.GetDevice(0);
 			_chosenDevice2 = AVProLiveCameraManager.Instance.GetDevice(1);
 			_chosenDevice1.Start(5, -1);
 			_chosenDevice2.Start(5, -1);
+			Config.CurrentFormat = StereoFormat.TwoCameras;
 		}
 		if (_selectedMode[3]) {
-
+			Config.CurrentFormat = StereoFormat.VideoSample;
 		}
 		if (_selectedMode[4]) {
-
+			Config.CurrentFormat = StereoFormat.DemoMode;
 		}
 
 	}
