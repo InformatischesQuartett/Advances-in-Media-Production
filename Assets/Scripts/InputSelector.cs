@@ -234,7 +234,7 @@ public class InputSelector : MonoBehaviour {
 			GUILayout.Label("If there are no cameras detected there could be a problem with the Blackmagic options. You need to configure them in the Control Center.");
 			if (GUILayout.Button ("Open Blackmagic Control Center")) {
 				try {
-					Application.OpenURL("C:Program Files/...");
+					Application.OpenURL(@"C:\Program Files (x86)\Blackmagic Design\Blackmagic Desktop Video\desktopcp.exe");
 				} catch (UnityException e) {
 					Debug.Log ("There is no program like this installed");
 				}
