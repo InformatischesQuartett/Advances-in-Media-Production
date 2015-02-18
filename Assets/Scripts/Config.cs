@@ -18,6 +18,8 @@ public static class Config {
     public static float HitDefault { get; private set; }
     public static float HitSensitivity { get; private set; }
 
+    public static bool CleanPreset { get; set; }
+
     public static Vector2 AspectRatio { get; private set; }
     public static Vector3 AspectRatioNorm { get; private set; }
 

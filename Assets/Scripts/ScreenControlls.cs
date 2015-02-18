@@ -46,11 +46,15 @@ public class ScreenControlls : MonoBehaviour
         _cameras.Add(GameObject.Find("RightEyeAnchor"));
 
         SetCamerasBackground(Config.Colors[Config.CurrentColorIndex]);
+
+        LoadPreset();
     }
 
     // Update is called once per frame
     private void Update()
     {
+        if (Input.anyKeyDown || Input.GetAxisRaw("Screen Size") != 0 || Input.GetAxisRaw("Screen Distance") != 0 || Input.GetAxisRaw("Color Select") != 0)
+            Config.CleanPreset = false;
 
         //HIT
         Hit += Input.GetAxis("HIT")*Time.deltaTime*Config.HitSensitivity;
@@ -58,7 +62,7 @@ public class ScreenControlls : MonoBehaviour
 
         //Distance
         ScreenDistance += Input.GetAxis("Screen Distance")*Time.deltaTime*Config.ScreenDistanceSensitivity;
-        ScreenDistance = Mathf.Clamp(ScreenDistance, 0, 1000);
+        ScreenDistance = Mathf.Clamp(ScreenDistance, 0.2f, 100);
 
         //SIZE
         ScreenSize += Input.GetAxis("Screen Size")*Time.deltaTime*Config.ScreenSizeSensitivity;
@@ -113,8 +117,11 @@ public class ScreenControlls : MonoBehaviour
 
         ScreenInfo.UpdateScreenVaues(ScreenDistance, ScreenSize, Hit);
 
-        if (Input.GetAxis("TrackerReset") > 0)
+        if (Input.GetAxis("Tracker Reset") > 0)
             OVRManager.display.RecenterPose();
+
+        if (Input.GetAxis("Preset Reset") > 0)
+            LoadPreset();
     }
 
     private void SetCamerasBackground(Color color)
@@ -145,6 +152,8 @@ public class ScreenControlls : MonoBehaviour
         Hit = Config.HitDefault;
 
         SetCamerasBackground(color);
+
+        Config.CleanPreset = true;
     }
 
 

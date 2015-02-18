@@ -3,7 +3,7 @@
 "ScreenSizeDefault": 1,
 "ScreenSizeSensitivity": 1,
 "ScreenDistanceDefault": 5,
-"ScreenDistanceSensitivity": 150,
+"ScreenDistanceSensitivity": 10,
 "HitDefault": 0,
 "HitSensitivity": 10,
 "DefaultAspectRatioX": 16,
