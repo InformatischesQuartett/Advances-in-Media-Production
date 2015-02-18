@@ -10,6 +10,7 @@ public static class Config {
 
 	public static AVProLiveCameraDevice AVDevice1 { get; set; }
 	public static AVProLiveCameraDevice AVDevice2 { get; set; }
+	public static StereoFormat CurrentFormat { get; set; }
 
     public static float ScreenDistanceDefault { get; private set; }
     public static float ScreenDistanceSensitivity { get; private set; }

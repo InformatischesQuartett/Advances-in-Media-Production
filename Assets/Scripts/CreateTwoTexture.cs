@@ -80,7 +80,7 @@ public class CreateTwoTexture : MonoBehaviour
 
         byte[] sampleData = null;
 
-        if (format == StereoFormat.SideBySide)
+        if (Format == StereoFormat.SideBySide)
         {
             Left = new Texture2D(imgWidth/2, imgHeight, TextureFormat.RGB24, false);
             Right = new Texture2D(imgWidth/2, imgHeight, TextureFormat.RGB24, false);
