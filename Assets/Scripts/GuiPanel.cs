@@ -55,18 +55,18 @@ public class GuiPanel : MonoBehaviour
         {
             var s = new Vector2(Config.CurrentPreset.ScreenSize*Config.AspectRatioNorm.x,
                 Config.CurrentPreset.ScreenSize*Config.AspectRatioNorm.z);
-            _info.UpdateInfo(Config.CurrentPreset.Name, Config.CurrentPreset.ScreenDistance, s, _screens.Hit, new Color(1,1,1));
+            _info.UpdateInfo(Config.CurrentPreset.Name, Config.CurrentPreset.ScreenDistance, s, _screens.Hit, Config.CurrentColor);
         }
         else
         {
             var s = new Vector2(_screens.ScreenSize*Config.AspectRatioNorm.x,
                 _screens.ScreenSize*Config.AspectRatioNorm.z);
-            _info.UpdateInfo("No Preset", _screens.ScreenDistance, s, _screens.Hit, new Color(1, 1, 1));
+            _info.UpdateInfo("No Preset", _screens.ScreenDistance, s, _screens.Hit, Config.CurrentColor);
         }
         newText = "Preset: " + _info.Name + "\nDistance: " + _info.Distance.ToString("0.00") + "\nScreen Width: " +
                   _info.Size.x.ToString("0.00") +
                   "\nScreen Height: " + _info.Size.y.ToString("0.00") +
-                  "\nHIT: " + _info.HIT+
+                  "\nHIT: " + _info.HIT.ToString("0.00") +
                   "\nBackground Color (RGB): \n" + _info.BackgroundColor.r + "," +_info.BackgroundColor.g+ ","+_info.BackgroundColor.b;
         _configurableSettingsText.text = newText;
     }

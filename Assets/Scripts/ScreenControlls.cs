@@ -58,8 +58,8 @@ public class ScreenControlls : MonoBehaviour
     // Update is called once per frame
     private void Update()
     {
-        if (Input.anyKeyDown || Input.GetAxisRaw("Screen Size") != 0 || Input.GetAxisRaw("Screen Distance") != 0 ||
-            Input.GetAxisRaw("Color Select") != 0)
+        if (Input.GetAxisRaw("Screen Size") != 0 || Input.GetAxisRaw("Screen Distance") != 0 ||
+            Input.GetAxisRaw("Color Select") != 0 || Input.GetAxis("HIT") != 0)
         {
             Config.CleanPreset = false;
             GuiTextUpdate();
