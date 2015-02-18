@@ -685,7 +685,6 @@ GameObject:
   - 4: {fileID: 1588954078}
   - 20: {fileID: 1588954077}
   - 114: {fileID: 1588954079}
-  - 114: {fileID: 1588954080}
   - 114: {fileID: 1588954081}
   - 114: {fileID: 1588954074}
   - 92: {fileID: 1588954075}
@@ -764,47 +763,11 @@ MonoBehaviour:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1588954073}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9b314e72e09aac24ea1d8ac469c46440, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Format: 3
---- !u!114 &1588954080
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1588954073}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1015dbb0b69fdd446b617191771ffcce, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _deviceSelection: 0
-  _desiredDeviceNames:
-  - Logitech HD Pro Webcam C920
-  - Decklink Video Capture
-  - Logitech Webcam Pro 9000
-  _desiredDeviceIndex: 0
-  _modeSelection: 0
-  _desiredResolutions:
-  - {x: 1920, y: 1080}
-  - {x: 1280, y: 720}
-  - {x: 640, y: 360}
-  - {x: 640, y: 480}
-  _desiredModeIndex: -1
-  _maintainAspectRatio: 0
-  _videoInputSelection: 0
-  _desiredVideoInputs: 0600000003000000
-  _desiredVideoInputIndex: 0
-  _playOnStart: 1
-  _deinterlace: 0
-  _flipX: 0
-  _flipY: 0
-  _updateHotSwap: 0
-  _updateFrameRates: 0
-  _updateSettings: 0
 --- !u!114 &1588954081
 MonoBehaviour:
   m_ObjectHideFlags: 0

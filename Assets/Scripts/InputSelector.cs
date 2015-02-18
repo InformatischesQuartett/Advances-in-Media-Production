@@ -271,35 +271,31 @@ public class InputSelector : MonoBehaviour {
 	 * Change the mode selection according to the toggles
 	 **/ 
 	private void modeSelection() {
-	
+		Config.AVDevice1 = -1;
+		Config.AVDevice2 = -1;
+		Config.AVCamMode = -1;
+
 		if (_selectedMode[0]) {
-			_chosenDevice1 = AVProLiveCameraManager.Instance.GetDevice(0);
 			Config.CurrentFormat = StereoFormat.SideBySide;
-			Config.AVDevice1 = _chosenDevice1;
-			Config.AVDevice2 = null;
+			Config.AVDevice1 = 0;
+			Config.AVCamMode = 5;
 		} 
 		if (_selectedMode[1]) {
-			_chosenDevice1 = AVProLiveCameraManager.Instance.GetDevice(0);
 			Config.CurrentFormat = StereoFormat.FramePacking;
-			Config.AVDevice1 = _chosenDevice1;
-			Config.AVDevice2 = null;
+			Config.AVDevice1 = 0;
+			Config.AVCamMode = 19;
 		}
 		if (_selectedMode[2]) {
-			_chosenDevice1 = AVProLiveCameraManager.Instance.GetDevice(0);
-			_chosenDevice2 = AVProLiveCameraManager.Instance.GetDevice(1);
 			Config.CurrentFormat = StereoFormat.TwoCameras;
-			Config.AVDevice1 = _chosenDevice1;
-			Config.AVDevice2 = _chosenDevice2;
+			Config.AVDevice1 = 0;
+			Config.AVDevice2 = 1;
+			Config.AVCamMode = 5;
 		}
 		if (_selectedMode[3]) {
 			Config.CurrentFormat = StereoFormat.VideoSample;
-			Config.AVDevice1 = null;
-			Config.AVDevice2 = null;
 		}
 		if (_selectedMode[4]) {
 			Config.CurrentFormat = StereoFormat.DemoMode;
-			Config.AVDevice1 = null;
-			Config.AVDevice2 = null;
 		}
 
 	}

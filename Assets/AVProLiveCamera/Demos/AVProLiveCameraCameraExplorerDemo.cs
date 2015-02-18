@@ -292,7 +292,7 @@ public class AVProLiveCameraCameraExplorerDemo : MonoBehaviour
 			for (int j = 0; j < device.NumModes; j++)
 			{	
 				AVProLiveCameraDeviceMode mode = device.GetMode(j);
-				if (GUILayout.Button("" + mode.Width + "x" + mode.Height + " " + mode.FPS.ToString("F2") + "hz " + "[" + mode.Format + "]"))
+				if (GUILayout.Button("" + mode.Width + "x" + mode.Height + " " + mode.FPS.ToString("F2") + "hz " + "[" + mode.Format + "] i: " + j))
 				{
 					if (_zoomed == null)
 					{

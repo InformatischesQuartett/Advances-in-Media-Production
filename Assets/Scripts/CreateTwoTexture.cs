@@ -8,10 +8,6 @@ public delegate void ConvDataCallback(byte[] imgLeft, byte[] imgRight);
 
 public class CreateTwoTexture : MonoBehaviour
 {
-    private AVProLiveCamera _liveCamera;
-
-    //public StereoFormat Format;
-
     private byte[] _lastImgLeft;
     private byte[] _lastImgRight;
     private bool _imgDataUpdate;
@@ -21,6 +17,11 @@ public class CreateTwoTexture : MonoBehaviour
 
     public Texture2D Left { get; private set; }
     public Texture2D Right { get; private set; }
+
+	private AVProLiveCameraDevice _device1;
+	private AVProLiveCameraDevice _device2;
+
+	private int _lastFrameCount = -1;
 
     // fps calculations
     private const float FPSUpdateRate = 2.0f;
@@ -33,12 +34,11 @@ public class CreateTwoTexture : MonoBehaviour
     private IEnumerator Start()
     {
         Left = Right = null;
-        _liveCamera = GetComponent<AVProLiveCamera>();
-
         yield return new WaitForSeconds(1);
 
+		StartCameras ();
         CreateNewTexture();
-
+	
         _imgDataUpdate = false;
 
         // fps caluclations
@@ -47,10 +47,21 @@ public class CreateTwoTexture : MonoBehaviour
         _threadFPS = 0.0f;  
     }
 
+	void OnRenderObject()
+	{
+		if (_lastFrameCount != Time.frameCount)
+		{
+			_lastFrameCount = Time.frameCount;
+
+			if (_device1 != null) _device1.Update(false);
+			if (_device2 != null) _device2.Update(false);
+		}
+	}
+
     private void Update()
     {
         if (Left == null || Right == null) return;
-        if (_workerObject == null) return;
+		if (_workerObject == null) return;
 		
 		Convert();
 
@@ -68,27 +79,38 @@ public class CreateTwoTexture : MonoBehaviour
             _deltaTime -= 1.0f / FPSUpdateRate;
         }
     }
+
     private void OnGUI()
     {
         GUI.Label(new Rect(5, 0, 250, 25), "Performance: " + _threadFPS.ToString("F1") + " fps");
     }
 
+	private void StartCameras()
+	{
+		if (Config.AVDevice1 != -1) {
+			_device1 = AVProLiveCameraManager.Instance.GetDevice (Config.AVDevice1);
+			_device1.Start (Config.AVCamMode, -1);
+		}
+
+		if (Config.AVDevice2 != -1) {
+			_device2 = AVProLiveCameraManager.Instance.GetDevice (Config.AVDevice2);
+			_device2.Start (Config.AVCamMode, -1);
+		}
+	}
+
     private void CreateNewTexture()
     {	
-		var imgWidth = 1920;//liveCamTexture.width;
-		var imgHeight = 1080;//liveCamTexture.height;
-
         byte[] sampleData = null;
 
         if (Config.CurrentFormat == StereoFormat.SideBySide)
         {
-            Left = new Texture2D(imgWidth/2, imgHeight, TextureFormat.RGB24, false);
-            Right = new Texture2D(imgWidth/2, imgHeight, TextureFormat.RGB24, false);
+            Left = new Texture2D(860, 1080, TextureFormat.RGB24, false);
+            Right = new Texture2D(860, 1080, TextureFormat.RGB24, false);
         }
         else
         {
-            Left = new Texture2D(imgWidth, imgHeight, TextureFormat.RGB24, false);
-            Right = new Texture2D(imgWidth, imgHeight, TextureFormat.RGB24, false);
+            Left = new Texture2D(1920, 1080, TextureFormat.RGB24, false);
+            Right = new Texture2D(1920, 1080, TextureFormat.RGB24, false);
         }
 
         // format checking and material initialization
@@ -105,42 +127,16 @@ public class CreateTwoTexture : MonoBehaviour
                 break;
 
             case StereoFormat.TwoCameras:
-                GetComponent<MaterialCreator>().Init(false, false);
-
-                // add snd device index
-
-                if (imgWidth != 1920 && imgHeight != 1080)
-                {
-                    Debug.Log("No valid camera attached or wrong mode selected. Image 1 has to be of size 1920x1080.");
-                    return;
-                }
-
+                GetComponent<MaterialCreator>().Init(true, false);
                 break;
 
+			case StereoFormat.SideBySide:
             case StereoFormat.FramePacking:
                 GetComponent<MaterialCreator>().Init(false, false);
-
-                if (imgWidth != 1920 && imgHeight != 2160)
-                {
-                    Debug.Log("No valid camera attached or wrong mode selected. Image has to be of size 1920x2160.");
-                    return;
-                }
-
-                break;
-
-            case StereoFormat.SideBySide:
-                GetComponent<MaterialCreator>().Init(false, false);
-
-                if (imgWidth < 1920)
-                {
-                    Debug.Log("No valid camera attached or wrong mode selected. Image has to be of size 1920x1080.");
-                    return;
-                }
-
                 break;
         }
 
-		_workerObject = new CVThread(1920, 1080, Config.CurrentFormat, UpdateImgData, sampleData);
+		_workerObject = new CVThread(Config.CurrentFormat, UpdateImgData, Config.AVDevice1, Config.AVDevice2, sampleData);
         _workerThread = new Thread(_workerObject.ProcessImage);
         _workerThread.Start();
     }

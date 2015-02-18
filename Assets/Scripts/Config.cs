@@ -9,8 +9,9 @@ public static class Config {
     private static readonly string _configPath = Application.streamingAssetsPath;
     private static readonly string _presetPath = Application.streamingAssetsPath + @"/Presets";
 
-	public static AVProLiveCameraDevice AVDevice1 { get; set; }
-	public static AVProLiveCameraDevice AVDevice2 { get; set; }
+	public static int AVDevice1 { get; set; }
+	public static int AVDevice2 { get; set; }
+	public static int AVCamMode { get; set; }
 	public static StereoFormat CurrentFormat { get; set; }
 
     public static float ScreenDistanceDefault { get; private set; }
@@ -129,6 +130,8 @@ public static class Config {
 
 		// default mode
 		CurrentFormat = StereoFormat.VideoSample;
+		AVDevice1 = -1;
+		AVDevice2 = -1;
     }
 
     private static void SetAspectRatioNorm(string arn)
