@@ -33,10 +33,7 @@ public static class Config {
     {
         get { return _colors; }
     }
-    public static PresetSet CurrentColor
-    {
-        get { return _presets[_currentColorIndex]; }
-    }
+    public static Color CurrentColor { get; set; }
 
     public static List<PresetSet> Presets
     {

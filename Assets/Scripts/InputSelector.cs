@@ -11,6 +11,7 @@ public class InputSelector : MonoBehaviour {
 	private float _waitingTime;
 
 	private bool _enableGUI;
+	private bool _helpPressed = false;
 
 	/*Camera Modes for Toggle*/
 
@@ -25,12 +26,8 @@ public class InputSelector : MonoBehaviour {
 	private int _currSelection = -1;
 
 	/*positions for the GUI scroll elements*/
-	private List<Vector2> _scrollPos = new List<Vector2>();
-	private List<Vector2> _scrollVideoInputPos = new List<Vector2>();
 	private Vector2 _horizScrollPos = Vector2.zero;
-	private Vector2 _horizScrollPos2 = Vector2.zero;
 
-	private List<AVProLiveCameraDevice> chosenDevices = new List<AVProLiveCameraDevice>();
 	private AVProLiveCameraDevice _chosenDevice1;
 	private AVProLiveCameraDevice _chosenDevice2;
 
@@ -69,7 +66,7 @@ public class InputSelector : MonoBehaviour {
 	void Update () {
 
 		/*Change to main application after certain amount of time without any selection*/
-		if (_currSelection == -1) {
+		if (_currSelection == -1 && !_helpPressed) {
 
 			float timeLeft = _waitingTime - Time.time; 
 			if (timeLeft < 0) {
@@ -92,8 +89,6 @@ public class InputSelector : MonoBehaviour {
 		for (int i = 0; i < numDevices; i++)
 		{
 			AVProLiveCameraDevice device = AVProLiveCameraManager.Instance.GetDevice(i);
-			_scrollPos.Add(new Vector2(0, 0));
-			_scrollVideoInputPos.Add(new Vector2(0, 0));
 		}		
 	}
 
@@ -147,15 +142,14 @@ public class InputSelector : MonoBehaviour {
 			GUILayout.Label("Please select a mode from the list below:");
 
 			/*Sony Side by Side*/
-
 			if (GUILayout.Toggle(_selectedMode[0], "Sony, Side by Side")) {
 				NewSelection(0);
-				/*Mode 5 is side by side mode*/
 				if (_currSelection != lastSelection) {
 					AVProLiveCameraManager.Instance.GetDevice(0).Close();
 					if (AVProLiveCameraManager.Instance.NumDevices > 1) {
 						AVProLiveCameraManager.Instance.GetDevice(1).Close();
 					}
+					/*Mode 5 is side by side mode*/
 					AVProLiveCameraManager.Instance.GetDevice(0).Start(5,-1);
 				}
 			}
@@ -164,11 +158,12 @@ public class InputSelector : MonoBehaviour {
 				NewSelection(1);
 				if (_currSelection != lastSelection) {
 					if (AVProLiveCameraManager.Instance.NumDevices > 0) {
-						/*Mode 19 is framepacking mode*/
+
 						AVProLiveCameraManager.Instance.GetDevice(0).Close();
 						if (AVProLiveCameraManager.Instance.NumDevices > 1) {
 							AVProLiveCameraManager.Instance.GetDevice(1).Close();
 						}
+						/*Mode 19 is framepacking mode*/
 						AVProLiveCameraManager.Instance.GetDevice(0).Start (19, -1);
 					}
 				}
@@ -223,7 +218,7 @@ public class InputSelector : MonoBehaviour {
 					GUILayout.Box("Camera 1: "  + device1.Name);
 					GUILayout.EndVertical();
 
-					GUILayout.BeginVertical();
+					GUILayout.BeginVertical("box", GUILayout.MaxWidth(300));
 					AVProLiveCameraDevice device2 = AVProLiveCameraManager.Instance.GetDevice(1);
 					/*Create a camera rectangle*/
 					Rect cameraRect2 = GUILayoutUtility.GetRect(300, 168);
@@ -235,16 +230,35 @@ public class InputSelector : MonoBehaviour {
 					GUILayout.Label("Caution: There are no two cameras connected! The Input has to be SDI or maybe you have chosen the wrong mode.");
 				}
 			}
+			GUILayout.BeginVertical("box", GUILayout.MaxWidth(300));
+			GUILayout.Label("If there are no cameras detected there could be a problem with the Blackmagic options. You need to configure them in the Control Center.");
+			if (GUILayout.Button ("Open Blackmagic Control Center")) {
+				try {
+					Application.OpenURL(@"C:\Program Files (x86)\Blackmagic Design\Blackmagic Desktop Video\desktopcp.exe");
+				} catch (UnityException e) {
+					Debug.Log ("There is no program like this installed");
+				}
+			}
+			GUILayout.EndVertical();
+			if (GUILayout.Button ("Done")) {
+				loadApplication ();
+			}
 
 			GUILayout.EndScrollView();
 			/*----> End horizontal scrollview area <----*/
 
 			GUI.Label (new Rect (10, Screen.height / 1.2f, Screen.width, 50), "Input Selector", _fontStyle);
+			//Help Button
 
-			if (GUI.Button (new Rect (80, Screen.height / 1.5f, 60, 60), "Done")) {
-				loadApplication ();
+			//GUI.Label (new Rect (Screen.width/ 1.13f, 10, 40,100), "Hallo");
+			if (GUI.Button (new Rect (Screen.width/1.13f, 10, 30,30), "?")) {
+				_helpPressed = !_helpPressed;
+
 			}
 
+			if (_helpPressed) {
+				GUI.Label (new Rect (Screen.width/ 1.6f, 40, 160, 400), "This is Cyclops - a S3D camera viewfinder for composition on set. You'll need a Sony3D or two Canon EOS C300 cameras plus the Oculus Rift DK2. Please read the documentation for further information.\n Application created by Fabian Gaertner, Sarah Haefele, Alexander Scheurer and Linda Schey for the subject Advanced Media Production at Hochschule Furtwangen in January 2015.");
+			}
 
 		} else {
 			GUI.Label (new Rect (10, Screen.height / 1.2f, Screen.width, 50), "Input selected. Please put on your OVR-Device now.", _fontStyle);
@@ -297,7 +311,6 @@ public class InputSelector : MonoBehaviour {
 		if (_selectedMode[4]) {
 			Config.CurrentFormat = StereoFormat.DemoMode;
 		}
-
 	}
 } //end class
 
