@@ -78,7 +78,6 @@ public class InputSelector : MonoBehaviour {
 		
 			/*After a certain amount of time change to Main Application with a video sample*/
 			if (timeLeft <= 0) {
-				_enableGUI = false;
 				Config.CurrentFormat = StereoFormat.VideoSample;
 				Application.LoadLevel ("default");
 			}
@@ -89,48 +88,10 @@ public class InputSelector : MonoBehaviour {
 	{
 		// Enumerate all cameras
 		int numDevices = AVProLiveCameraManager.Instance.NumDevices;
-		print("num devices: " + numDevices);
+
 		for (int i = 0; i < numDevices; i++)
 		{
 			AVProLiveCameraDevice device = AVProLiveCameraManager.Instance.GetDevice(i);
-			
-			// Enumerate video inputs (only for devices with multiple analog input sources, eg TV cards)
-			print("device " + i + ": " + device.Name + " has " + device.NumVideoInputs + " videoInputs");
-			for (int j = 0; j < device.NumVideoInputs; j++)
-			{
-				print("  videoInput " + j + ": " + device.GetVideoInputName(j));
-			}
-			
-			// Enumerate camera modes
-			print("device " + i + ": " + device.Name + " has " + device.NumModes + " modes");
-			for (int j = 0; j < device.NumModes; j++)
-			{
-				AVProLiveCameraDeviceMode mode = device.GetMode(j);
-				print("  mode " + j + ": " + mode.Width + "x" + mode.Height + " @" + mode.FPS.ToString("F2") + "fps [" + mode.Format + "] idx:" + mode.Index);
-			}
-			
-			// Enumerate camera settings
-			print("device " + i + ": " + device.Name + " has " + device.NumSettings + " video settings");
-			for (int j = 0; j < device.NumSettings; j++)
-			{
-				AVProLiveCameraSettingBase settingBase = device.GetVideoSettingByIndex(j);
-				switch (settingBase.DataTypeValue)
-				{
-				case AVProLiveCameraSettingBase.DataType.Boolean:
-				{
-					AVProLiveCameraSettingBoolean settingBool = (AVProLiveCameraSettingBoolean)settingBase;
-					print(string.Format("  setting {0}: {1}({2}) value:{3} default:{4} canAuto:{5} isAuto:{6}", j, settingBase.Name, settingBase.PropertyIndex, settingBool.CurrentValue, settingBool.DefaultValue, settingBase.CanAutomatic, settingBase.IsAutomatic));
-				}
-					break;
-				case AVProLiveCameraSettingBase.DataType.Float:
-				{
-					AVProLiveCameraSettingFloat settingFloat = (AVProLiveCameraSettingFloat)settingBase;
-					print(string.Format("  setting {0}: {1}({2}) value:{3} default:{4} range:{5}-{6} canAuto:{7} isAuto:{8}", j, settingBase.Name, settingBase.PropertyIndex, settingFloat.CurrentValue, settingFloat.DefaultValue, settingFloat.MinValue, settingFloat.MaxValue, settingBase.CanAutomatic, settingBase.IsAutomatic));
-				}
-					break;
-				}
-			}
-			
 			_scrollPos.Add(new Vector2(0, 0));
 			_scrollVideoInputPos.Add(new Vector2(0, 0));
 		}		
