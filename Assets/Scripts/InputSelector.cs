@@ -11,7 +11,6 @@ public class InputSelector : MonoBehaviour {
 	private float _waitingTime;
 
 	private bool _enableGUI;
-	private bool _inputSelected;
 
 	/*Camera Modes for Toggle*/
 
@@ -23,13 +22,7 @@ public class InputSelector : MonoBehaviour {
 	 * 4: Demo2: freeze image
 	 **/ 
 	private bool[] _selectedMode = new bool[5];
-	private int _currSelection;
-
-
-	/*Demo1: */
-	private bool _pressedDemo1 = false;
-	/*Demo2: */
-	private bool _pressedDemo2 = false;
+	private int _currSelection = -1;
 
 	/*positions for the GUI scroll elements*/
 	private List<Vector2> _scrollPos = new List<Vector2>();
@@ -50,7 +43,6 @@ public class InputSelector : MonoBehaviour {
 
 		/*Boolean values for the gui*/
 		_enableGUI = true;
-		_inputSelected = false;
 
 		/*Design*/
 		_backgroundTex = (Texture2D) Resources.Load ("Textures/background", typeof(Texture2D));
@@ -75,8 +67,9 @@ public class InputSelector : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+
 		/*Change to main application after certain amount of time without any selection*/
-		if (!_inputSelected) {
+		if (_currSelection == -1) {
 
 			float timeLeft = _waitingTime - Time.time; 
 			if (timeLeft < 0) {
@@ -176,10 +169,6 @@ public class InputSelector : MonoBehaviour {
 		/*Draw Background tex*/
 		GUI.DrawTexture (new Rect (0, 0, Screen.width, Screen.height), _backgroundTex);
 
-		if (GUI.changed) {
-			_inputSelected = true;
-		}
-
 		if (_enableGUI) {
 			/*----> Start horizontal scrollview area <----*/
 			_horizScrollPos = GUILayout.BeginScrollView(_horizScrollPos, false, false);
@@ -204,9 +193,17 @@ public class InputSelector : MonoBehaviour {
 				
 			}
 
+			if (_currSelection == 0 || _currSelection == 1) {
+				/*----> Start vertical control group. <----*/
+				GUILayout.BeginVertical("box", GUILayout.MaxWidth(300));
+			}
+
+			if (_currSelection == 2) {
+			}
+
 
 			for (int i = 0; i < AVProLiveCameraManager.Instance.NumDevices; i++){
-				/*----> Start vertical control group. <----*/
+
 				GUILayout.BeginVertical("box", GUILayout.MaxWidth(300));
 				AVProLiveCameraDevice device = AVProLiveCameraManager.Instance.GetDevice(i);
 
@@ -227,6 +224,7 @@ public class InputSelector : MonoBehaviour {
 				/*----> End vertical control group. <----*/
 				GUILayout.EndVertical();
 			}
+
 
 			GUILayout.EndScrollView();
 			/*----> End horizontal scrollview area <----*/
