@@ -218,7 +218,7 @@ public class InputSelector : MonoBehaviour {
 					GUILayout.Box("Camera 1: "  + device1.Name);
 					GUILayout.EndVertical();
 
-					GUILayout.BeginVertical();
+					GUILayout.BeginVertical("box", GUILayout.MaxWidth(300));
 					AVProLiveCameraDevice device2 = AVProLiveCameraManager.Instance.GetDevice(1);
 					/*Create a camera rectangle*/
 					Rect cameraRect2 = GUILayoutUtility.GetRect(300, 168);
