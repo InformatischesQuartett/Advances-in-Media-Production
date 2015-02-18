@@ -143,7 +143,6 @@ public class ScreenControlls : MonoBehaviour
 
         this.transform.localScale = ScreenSize * Vector3.one;
 
-        ScreenInfo.UpdateScreenVaues(ScreenDistance, ScreenSize, Hit);
     }
 
     private void SetCamerasBackground(Color color)

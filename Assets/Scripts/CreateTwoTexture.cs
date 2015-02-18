@@ -91,7 +91,7 @@ public class CreateTwoTexture : MonoBehaviour
             Right = new Texture2D(imgWidth, imgHeight, TextureFormat.RGB24, false);
         }
 
-        ScreenInfo.SetFormatInfo(Format);
+       // ScreenInfo.SetFormatInfo(Format);
 
         // format checking and material initialization
         switch (Format)
