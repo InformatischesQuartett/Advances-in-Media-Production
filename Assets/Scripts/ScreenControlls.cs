@@ -19,6 +19,7 @@ public class ScreenControlls : MonoBehaviour
 
     private bool _colorAxisInUse = false;
     private bool _presetAxisInUse = false;
+    private bool _saveAxisInUse = false;
 
     public List<Config.PresetSet> Presets { get; private set; } 
 
@@ -82,7 +83,7 @@ public class ScreenControlls : MonoBehaviour
         {
             _colorAxisInUse = false;
         }
-        
+
         //Presets
         if (Input.GetAxisRaw("Preset Select") != 0)
         {
@@ -97,6 +98,27 @@ public class ScreenControlls : MonoBehaviour
         {
             _presetAxisInUse = false;
         }
+
+        //Saving presets
+        if (Input.GetAxisRaw("Preset Save") != 0)
+        {
+            if (_saveAxisInUse == false)
+            {
+                Config.SavePreset(ScreenDistance, ScreenSize, Config.Colors[Config.CurrentColorIndex], Config.AspectRatioNormString);
+            }
+            _saveAxisInUse = true;
+        }
+        else
+        {
+            _saveAxisInUse = false;
+        }
+
+        if (Input.GetAxis("Tracker Reset") > 0)
+            OVRManager.display.RecenterPose();
+
+        if (Input.GetAxis("Preset Reset") > 0)
+            LoadPreset();
+
 
         _positionVectorScreenL.x = Hit/2f;
         _positionVectorScreenL.y = 0;
@@ -116,12 +138,6 @@ public class ScreenControlls : MonoBehaviour
         this.transform.localScale = ScreenSize * Vector3.one;
 
         ScreenInfo.UpdateScreenVaues(ScreenDistance, ScreenSize, Hit);
-
-        if (Input.GetAxis("Tracker Reset") > 0)
-            OVRManager.display.RecenterPose();
-
-        if (Input.GetAxis("Preset Reset") > 0)
-            LoadPreset();
     }
 
     private void SetCamerasBackground(Color color)

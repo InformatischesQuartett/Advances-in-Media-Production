@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
@@ -23,6 +24,7 @@ public static class Config {
 
     public static Vector2 AspectRatio { get; private set; }
     public static Vector3 AspectRatioNorm { get; private set; }
+    public static string AspectRatioNormString { get; private set; }
 
     public static bool Monoscopic { get; private set; }
 
@@ -80,7 +82,7 @@ public static class Config {
 
         ScreenDistanceDefault = conf.ScreenDistanceDefault;
         ScreenDistanceSensitivity = conf.ScreenDistanceSensitivity;
-        ScreenSizeDefault = conf.ScreenSizeDefault;
+        ScreenSizeDefault = conf.ScreenSizeDefault * 0.1f;
         ScreenSizeSensitivity = conf.ScreenSizeSensitivity;
         HitDefault = conf.HitDefault;
         HitSensitivity = conf.HitSensitivity;
@@ -117,6 +119,8 @@ public static class Config {
                 var preset = JsonConvert.DeserializeObject<PresetSet>(filecontent);
                 if (string.IsNullOrEmpty(preset.Name))
                     preset.Name = Path.GetFileNameWithoutExtension(file);
+
+                preset.ScreenSize *= 0.1f;
                 Presets.Add(preset);
             }
         }
@@ -127,6 +131,8 @@ public static class Config {
 
     private static void SetAspectRatioNorm(string arn)
     {
+        AspectRatioNormString = arn;
+
         if (arn == "horizontal")
         {
             AspectRatioNorm = new Vector3(1, 0, AspectRatio.y / AspectRatio.x);
@@ -140,6 +146,27 @@ public static class Config {
             Debug.LogError("Config for AspectRatioNorm not valid! Valid options are 'horizontal' or 'vertical'.");
             Application.Quit();
         }
+    }
+
+    public static void SavePreset(float dist, float size, Color color, string ar)
+    {
+        var preset = new PresetSet();
+        preset.ScreenDistance = dist;
+        preset.ScreenSize = size;
+        preset.BackgroundColor = new float[3];
+        preset.BackgroundColor[0] = color.r;
+        preset.BackgroundColor[1] = color.g;
+        preset.BackgroundColor[2] = color.b;
+        preset.AspectRatioNorm = ar;
+
+        DateTime dt = DateTime.Now;
+
+        preset.Name = "CustomPreset-" + String.Format("{0:yyMMdd-HHmmss}", dt);
+        
+        string json = JsonConvert.SerializeObject(preset, Formatting.Indented);
+        File.WriteAllText(_presetPath + "/" + preset.Name + ".json", json);
+
+        Presets.Add(preset);
     }
 
     private struct ConfigSet
