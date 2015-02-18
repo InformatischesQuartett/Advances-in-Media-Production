@@ -29,6 +29,8 @@ public class ScreenControlls : MonoBehaviour
     // Use this for initialization
     private void Start()
     {
+        Config.Init();
+
         //Initial Screen settings
         ScreenDistance = Config.ScreenDistanceDefault;
         ScreenSize = Config.ScreenSizeDefault;
