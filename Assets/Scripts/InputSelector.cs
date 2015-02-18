@@ -235,10 +235,16 @@ public class InputSelector : MonoBehaviour {
 					GUILayout.Label("Caution: There are no two cameras connected! The Input has to be SDI or maybe you have chosen the wrong mode.");
 				}
 			}
+			GUILayout.BeginVertical("box", GUILayout.MaxWidth(300));
+			GUILayout.Label("If there are no cameras detected there could be a problem with the Blackmagic options. You need to configure them in the Control Center.");
+			if (GUILayout.Button ("Open Blackmagic Control Center")) {
 
+			}
+			GUILayout.EndVertical();
 			if (GUILayout.Button ("Done")) {
 				loadApplication ();
 			}
+
 
 			GUILayout.EndScrollView();
 			/*----> End horizontal scrollview area <----*/
