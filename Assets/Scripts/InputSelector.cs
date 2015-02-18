@@ -11,8 +11,25 @@ public class InputSelector : MonoBehaviour {
 	private float _waitingTime;
 
 	private bool _enableGUI;
-	private bool _done;
 	private bool _inputSelected;
+
+	/*Camera Modes for Toggle*/
+
+	/**
+	 * 0: Sony Side by Side
+	 * 1: Sony Framepacking
+	 * 2: 2x C300
+	 * 3: Demo1: Trailer
+	 * 4: Demo2: freeze image
+	 **/ 
+	private bool[] _selectedMode = new bool[5];
+	private int _currSelection;
+
+
+	/*Demo1: */
+	private bool _pressedDemo1 = false;
+	/*Demo2: */
+	private bool _pressedDemo2 = false;
 
 	/*positions for the GUI scroll elements*/
 	private List<Vector2> _scrollPos = new List<Vector2>();
@@ -21,6 +38,9 @@ public class InputSelector : MonoBehaviour {
 	private Vector2 _horizScrollPos2 = Vector2.zero;
 
 	private List<AVProLiveCameraDevice> chosenDevices = new List<AVProLiveCameraDevice>();
+	private AVProLiveCameraDevice _chosenDevice1;
+	private AVProLiveCameraDevice _chosenDevice2;
+
 	
 	void Start () {
 		/* Makes the application run even when in background*/
@@ -30,7 +50,6 @@ public class InputSelector : MonoBehaviour {
 
 		/*Boolean values for the gui*/
 		_enableGUI = true;
-		_done = false;
 		_inputSelected = false;
 
 		/*Design*/
@@ -56,6 +75,7 @@ public class InputSelector : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+		/*Change to main application after certain amount of time without any selection*/
 		if (!_inputSelected) {
 
 			float timeLeft = _waitingTime - Time.time; 
@@ -63,10 +83,10 @@ public class InputSelector : MonoBehaviour {
 				timeLeft = 0;
 			}
 		
-			/*After a certain amount of time change to Application with default settings*/
+			/*After a certain amount of time change to Main Application with a video sample*/
 			if (timeLeft <= 0) {
 				_enableGUI = false;
-				loadDefaultSettings ();
+				Config.CurrentFormat = StereoFormat.VideoSample;
 				Application.LoadLevel ("default");
 			}
 		}
@@ -156,10 +176,34 @@ public class InputSelector : MonoBehaviour {
 		/*Draw Background tex*/
 		GUI.DrawTexture (new Rect (0, 0, Screen.width, Screen.height), _backgroundTex);
 
+		if (GUI.changed) {
+			_inputSelected = true;
+		}
+
 		if (_enableGUI) {
 			/*----> Start horizontal scrollview area <----*/
 			_horizScrollPos = GUILayout.BeginScrollView(_horizScrollPos, false, false);
-			GUILayout.Label("Please select a video device by clicking on it:");
+			GUILayout.Label("Please select a mode from the list below:");
+
+			/*Sony Side by Side*/
+			if (GUILayout.Toggle(_selectedMode[0], "Sony, Side by Side")) {
+				_currSelection = 0;
+			}
+			/*Sony Framepacking*/
+			if (GUILayout.Toggle(_selectedMode[1], "Sony, Framepacking")) {
+				_currSelection = 1;
+			}
+			/*2x C300 Framepacking*/
+			if (GUILayout.Toggle(_selectedMode[2], "2x Canon EOS C300")) {
+				_currSelection = 2;
+			}
+
+			/*Set all other values but the one currently selected to false*/
+			for (int i = 0; i < _selectedMode.Length; i++) {
+				_selectedMode[i] = (_currSelection == i);
+				
+			}
+
 
 			for (int i = 0; i < AVProLiveCameraManager.Instance.NumDevices; i++){
 				/*----> Start vertical control group. <----*/
@@ -231,25 +275,52 @@ public class InputSelector : MonoBehaviour {
 			GUI.Label (new Rect (10, Screen.height / 1.2f, Screen.width, 50), "Input selected. Please put on your OVR-Device now.", _fontStyle);
 		}
 	}//end OnGUI
-
-	/*Loading Default Settings if nothing was selected*/
-	private void loadDefaultSettings () {
-	}
+	
 
 	private void loadApplication () {
-		//if 1 or 2 device selected or demo selected 
-		_enableGUI = false;
-		Application.LoadLevel("default");
+		/*Check for selections*/
+		modeSelection();
 
-		//else: error/ warning
+		for (int i=0; i < _selectedMode.Length; i++) {
+			if (_selectedMode[i] == true) {
+				_enableGUI = false;
+				Application.LoadLevel ("default");
+				return;
+			}
+		}
+
+		Debug.Log ("Nothing sected");
+
 	}
 
-	private void resetChosenDevices() {
-		//demo mode false
+	/**
+	 * Change the mode selection according to the toggles
+	 **/ 
+	private void modeSelection() {
+	
+		if (_selectedMode[0]) {
+			_chosenDevice1 = AVProLiveCameraManager.Instance.GetDevice(0);
+			/*Mode 5 is side by side*/
+			_chosenDevice1.Start();
+		} 
+		if (_selectedMode[1]) {
+			_chosenDevice1 = AVProLiveCameraManager.Instance.GetDevice(0);
+			/*Mode 19 is framepacking mode*/
+			_chosenDevice1.Start(19, -1);
+		}
+		if (_selectedMode[2]) {
+			_chosenDevice1 = AVProLiveCameraManager.Instance.GetDevice(0);
+			_chosenDevice2 = AVProLiveCameraManager.Instance.GetDevice(1);
+			_chosenDevice1.Start(5, -1);
+			_chosenDevice2.Start(5, -1);
+		}
+		if (_selectedMode[3]) {
 
-		//remove all chosen devices
+		}
+		if (_selectedMode[4]) {
 
-		//remove all modes
+		}
+
 	}
 } //end class
 
