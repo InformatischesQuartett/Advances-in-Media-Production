@@ -21,8 +21,10 @@ public class ScreenControlls : MonoBehaviour
     private bool _presetAxisInUse = false;
     private bool _saveAxisInUse = false;
 
-    public List<Config.PresetSet> Presets { get; private set; } 
+    public List<Config.PresetSet> Presets { get; private set; }
 
+    public delegate void UpdateGuiText();
+    public UpdateGuiText GuiTextUpdate;
 
     // Use this for initialization
     private void Start()
@@ -54,8 +56,12 @@ public class ScreenControlls : MonoBehaviour
     // Update is called once per frame
     private void Update()
     {
-        if (Input.anyKeyDown || Input.GetAxisRaw("Screen Size") != 0 || Input.GetAxisRaw("Screen Distance") != 0 || Input.GetAxisRaw("Color Select") != 0)
+        if (Input.anyKeyDown || Input.GetAxisRaw("Screen Size") != 0 || Input.GetAxisRaw("Screen Distance") != 0 ||
+            Input.GetAxisRaw("Color Select") != 0)
+        {
             Config.CleanPreset = false;
+            GuiTextUpdate();
+        }
 
         //HIT
         Hit += Input.GetAxis("HIT")*Time.deltaTime*Config.HitSensitivity;
@@ -170,6 +176,8 @@ public class ScreenControlls : MonoBehaviour
         SetCamerasBackground(color);
 
         Config.CleanPreset = true;
+        
+        GuiTextUpdate();
     }
 
 
