@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Drawing;
-using System.IO;
 using System.Threading;
 using Emgu.CV;
 using Emgu.CV.CvEnum;
@@ -80,12 +79,12 @@ public unsafe class CVThread
     private volatile int _runCounter;
     private volatile bool _shouldStop;
 
-    private  int _imgWidth;
-    private  int _imgHeight;
+    private readonly int _imgWidth;
+    private readonly int _imgHeight;
     private readonly StereoFormat _imgMode;
 
-    private int _deviceID1;
-    private int _deviceID2;
+    private readonly int _deviceID1;
+    private readonly int _deviceID2;
 
     private Capture _vidCapture;
     private int _frameRate;

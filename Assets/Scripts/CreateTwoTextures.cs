@@ -2,11 +2,10 @@
 using System.Collections;
 using System.IO;
 using System.Threading;
-using Newtonsoft.Json.Converters;
 
 public delegate void ConvDataCallback(byte[] imgLeft, byte[] imgRight);
 
-public class CreateTwoTexture : MonoBehaviour
+public class CreateTwoTextures : MonoBehaviour
 {
     private byte[] _lastImgLeft;
     private byte[] _lastImgRight;
@@ -18,10 +17,9 @@ public class CreateTwoTexture : MonoBehaviour
     public Texture2D Left { get; private set; }
     public Texture2D Right { get; private set; }
 
-	private AVProLiveCameraDevice _device1;
-	private AVProLiveCameraDevice _device2;
-
-	private int _lastFrameCount = -1;
+    private AVProLiveCameraDevice _device1;
+    private AVProLiveCameraDevice _device2;
+    private int _lastFrameCount = -1;
 
     // fps calculations
     private const float FPSUpdateRate = 2.0f;
@@ -30,53 +28,50 @@ public class CreateTwoTexture : MonoBehaviour
     private float _threadFPS;
     private int _threadFrameCount;
 
-    // Use this for initialization
-    private IEnumerator Start()
-    {
-        Left = Right = null;
-        yield return new WaitForSeconds(1);
 
-		StartCameras ();
+    private void Start()
+    {
+        StartCameras();
         CreateNewTexture();
-	
+
         _imgDataUpdate = false;
 
         // fps caluclations
         _deltaTime = 0.0f;
         _threadFrameCount = 0;
-        _threadFPS = 0.0f;  
+        _threadFPS = 0.0f;
     }
 
-	void OnRenderObject()
-	{
-		if (_lastFrameCount != Time.frameCount)
-		{
-			_lastFrameCount = Time.frameCount;
+    private void OnRenderObject()
+    {
+        if (_lastFrameCount != Time.frameCount)
+        {
+            _lastFrameCount = Time.frameCount;
 
-			if (_device1 != null) _device1.Update(false);
-			if (_device2 != null) _device2.Update(false);
-		}
-	}
+            if (_device1 != null) _device1.Update(false);
+            if (_device2 != null) _device2.Update(false);
+        }
+    }
 
     private void Update()
     {
         if (Left == null || Right == null) return;
-		if (_workerObject == null) return;
-		
-		Convert();
+        if (_workerObject == null) return;
+
+        Convert();
 
         // fps calculations
         _deltaTime += Time.deltaTime;
 
-        if (_deltaTime > 1.0f / FPSUpdateRate)
+        if (_deltaTime > 1.0f/FPSUpdateRate)
         {
             int runCount = _workerObject.GetRunCount();
 
             int threadDiff = runCount - _threadFrameCount;
-            _threadFPS = threadDiff / _deltaTime;
+            _threadFPS = threadDiff/_deltaTime;
             _threadFrameCount = runCount;
 
-            _deltaTime -= 1.0f / FPSUpdateRate;
+            _deltaTime -= 1.0f/FPSUpdateRate;
         }
     }
 
@@ -85,21 +80,23 @@ public class CreateTwoTexture : MonoBehaviour
         GUI.Label(new Rect(5, 0, 250, 25), "Performance: " + _threadFPS.ToString("F1") + " fps");
     }
 
-	private void StartCameras()
-	{
-		if (Config.AVDevice1 != -1) {
-			_device1 = AVProLiveCameraManager.Instance.GetDevice (Config.AVDevice1);
-			_device1.Start (Config.AVCamMode, -1);
-		}
+    private void StartCameras()
+    {
+        if (Config.AVDevice1 != -1)
+        {
+            _device1 = AVProLiveCameraManager.Instance.GetDevice(Config.AVDevice1);
+            _device1.Start(Config.AVCamMode);
+        }
 
-		if (Config.AVDevice2 != -1) {
-			_device2 = AVProLiveCameraManager.Instance.GetDevice (Config.AVDevice2);
-			_device2.Start (Config.AVCamMode, -1);
-		}
-	}
+        if (Config.AVDevice2 != -1)
+        {
+            _device2 = AVProLiveCameraManager.Instance.GetDevice(Config.AVDevice2);
+            _device2.Start(Config.AVCamMode);
+        }
+    }
 
     private void CreateNewTexture()
-    {	
+    {
         byte[] sampleData = null;
 
         if (Config.CurrentFormat == StereoFormat.SideBySide)
@@ -114,7 +111,7 @@ public class CreateTwoTexture : MonoBehaviour
         }
 
         // format checking and material initialization
-		switch (Config.CurrentFormat)
+        switch (Config.CurrentFormat)
         {
             case StereoFormat.DemoMode:
                 GetComponent<MaterialCreator>().Init(true, true);
@@ -130,13 +127,13 @@ public class CreateTwoTexture : MonoBehaviour
                 GetComponent<MaterialCreator>().Init(true, false);
                 break;
 
-			case StereoFormat.SideBySide:
+            case StereoFormat.SideBySide:
             case StereoFormat.FramePacking:
                 GetComponent<MaterialCreator>().Init(false, false);
                 break;
         }
 
-		_workerObject = new CVThread(Config.CurrentFormat, UpdateImgData, Config.AVDevice1, Config.AVDevice2, sampleData);
+        _workerObject = new CVThread(Config.CurrentFormat, UpdateImgData, Config.AVDevice1, Config.AVDevice2, sampleData);
         _workerThread = new Thread(_workerObject.ProcessImage);
         _workerThread.Start();
     }
@@ -159,7 +156,7 @@ public class CreateTwoTexture : MonoBehaviour
     {
         if (_imgDataUpdate)
         {
-			Left.LoadRawTextureData(_lastImgLeft);
+            Left.LoadRawTextureData(_lastImgLeft);
             Left.Apply();
 
             Right.LoadRawTextureData(_lastImgRight);
@@ -192,7 +189,7 @@ public class CreateTwoTexture : MonoBehaviour
 
         using (var br = new BinaryReader(file))
         {
-            long valueCt = br.BaseStream.Length / sizeof(byte);
+            long valueCt = br.BaseStream.Length/sizeof (byte);
             var readArr = new byte[valueCt];
 
             for (int x = 0; x < valueCt; x++)

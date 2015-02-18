@@ -12,7 +12,7 @@ public class MaterialCreator : MonoBehaviour
 
     private Texture2D _texL;
     private Texture2D _texR;
-	private bool _ready = false;
+	private bool _ready;
 
     // Use this for initialization
     public void Init(bool flipX, bool flipY)
@@ -38,8 +38,9 @@ public class MaterialCreator : MonoBehaviour
 	{
 		if (_ready) 
 		{
-			_matL.SetTexture ("_MainTex", this.GetComponent<CreateTwoTexture> ().Left);
-			_matR.SetTexture ("_MainTex", this.GetComponent<CreateTwoTexture> ().Right);
+			_matL.SetTexture ("_MainTex", GetComponent<CreateTwoTextures> ().Left);
+			_matR.SetTexture ("_MainTex", GetComponent<CreateTwoTextures> ().Right);
+		    _ready = false;
 		}
 	}
 }
