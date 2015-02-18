@@ -126,6 +126,9 @@ public static class Config {
 
         _currentColorIndex = 0;
         _currentPresetIndex = 0;
+
+		// default mode
+		CurrentFormat = StereoFormat.VideoSample;
     }
 
     private static void SetAspectRatioNorm(string arn)
