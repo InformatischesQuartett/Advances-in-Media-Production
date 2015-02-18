@@ -11,6 +11,7 @@ public class InputSelector : MonoBehaviour {
 	private float _waitingTime;
 
 	private bool _enableGUI;
+	private bool _helpPressed = false;
 
 	/*Camera Modes for Toggle*/
 
@@ -65,7 +66,7 @@ public class InputSelector : MonoBehaviour {
 	void Update () {
 
 		/*Change to main application after certain amount of time without any selection*/
-		if (_currSelection == -1) {
+		if (_currSelection == -1 && !_helpPressed) {
 
 			float timeLeft = _waitingTime - Time.time; 
 			if (timeLeft < 0) {
@@ -233,7 +234,7 @@ public class InputSelector : MonoBehaviour {
 			GUILayout.Label("If there are no cameras detected there could be a problem with the Blackmagic options. You need to configure them in the Control Center.");
 			if (GUILayout.Button ("Open Blackmagic Control Center")) {
 				try {
-				Application.OpenURL("C:Program Files/...");
+					Application.OpenURL("C:Program Files/...");
 				} catch (UnityException e) {
 					Debug.Log ("There is no program like this installed");
 				}
@@ -243,12 +244,21 @@ public class InputSelector : MonoBehaviour {
 				loadApplication ();
 			}
 
-
 			GUILayout.EndScrollView();
 			/*----> End horizontal scrollview area <----*/
 
 			GUI.Label (new Rect (10, Screen.height / 1.2f, Screen.width, 50), "Input Selector", _fontStyle);
+			//Help Button
 
+			//GUI.Label (new Rect (Screen.width/ 1.13f, 10, 40,100), "Hallo");
+			if (GUI.Button (new Rect (Screen.width/1.13f, 10, 30,30), "?")) {
+				_helpPressed = !_helpPressed;
+
+			}
+
+			if (_helpPressed) {
+				GUI.Label (new Rect (Screen.width/ 1.6f, 40, 150, 400), "This is Cyclops - a S3D camera viewfinder for composition on set. You'll need a Sony3D or two Canon EOS C300 cameras plus the Oculus Rift DK2. Please read the documentation for further information.\n Application created by Fabian Gaertner, Sarah Haefele, Alexander Scheurer and Linda Schey for the subject Advanced Media Production at Hochschule Furtwangen in January 2015.");
+			}
 
 		} else {
 			GUI.Label (new Rect (10, Screen.height / 1.2f, Screen.width, 50), "Input selected. Please put on your OVR-Device now.", _fontStyle);
@@ -305,7 +315,6 @@ public class InputSelector : MonoBehaviour {
 			Config.AVDevice1 = null;
 			Config.AVDevice2 = null;
 		}
-
 	}
 } //end class
 
