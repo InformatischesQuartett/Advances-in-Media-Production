@@ -172,6 +172,16 @@ public class InputSelector : MonoBehaviour {
 		EnumerateDevices();
 	}
 
+	void NewSelection(int mode)
+	{
+		_currSelection = mode;
+
+		/*Set all other values but the one currently selected to false*/
+		for (int i = 0; i < _selectedMode.Length; i++) {
+			_selectedMode[i] = (_currSelection == i);	
+		}
+	}
+
 	void OnGUI () {
 		/*Draw Background tex*/
 		GUI.DrawTexture (new Rect (0, 0, Screen.width, Screen.height), _backgroundTex);
@@ -186,23 +196,20 @@ public class InputSelector : MonoBehaviour {
 			GUILayout.Label("Please select a mode from the list below:");
 
 			/*Sony Side by Side*/
+
 			if (GUILayout.Toggle(_selectedMode[0], "Sony, Side by Side")) {
-				_currSelection = 0;
+				NewSelection(0);
 			}
 			/*Sony Framepacking*/
 			if (GUILayout.Toggle(_selectedMode[1], "Sony, Framepacking")) {
-				_currSelection = 1;
+				NewSelection(1);
 			}
 			/*2x C300 Framepacking*/
 			if (GUILayout.Toggle(_selectedMode[2], "2x Canon EOS C300")) {
-				_currSelection = 2;
+				NewSelection(2);
 			}
 
-			/*Set all other values but the one currently selected to false*/
-			for (int i = 0; i < _selectedMode.Length; i++) {
-				_selectedMode[i] = (_currSelection == i);
-				
-			}
+
 
 
 			for (int i = 0; i < AVProLiveCameraManager.Instance.NumDevices; i++){
