@@ -139,6 +139,7 @@ public class InputSelector : MonoBehaviour {
 	void OnGUI () {
 		/*Draw Background tex*/
 		GUI.DrawTexture (new Rect (0, 0, Screen.width, Screen.height), _backgroundTex);
+		int lastSelection = _currSelection;
 
 		if (_enableGUI) {
 			/*----> Start horizontal scrollview area <----*/
@@ -149,14 +150,40 @@ public class InputSelector : MonoBehaviour {
 
 			if (GUILayout.Toggle(_selectedMode[0], "Sony, Side by Side")) {
 				NewSelection(0);
+				/*Mode 5 is side by side mode*/
+				if (_currSelection != lastSelection) {
+					AVProLiveCameraManager.Instance.GetDevice(0).Close();
+					if (AVProLiveCameraManager.Instance.NumDevices > 1) {
+						AVProLiveCameraManager.Instance.GetDevice(1).Close();
+					}
+					AVProLiveCameraManager.Instance.GetDevice(0).Start(5,-1);
+				}
 			}
 			/*Sony Framepacking*/
 			if (GUILayout.Toggle(_selectedMode[1], "Sony, Framepacking")) {
 				NewSelection(1);
+				if (_currSelection != lastSelection) {
+					if (AVProLiveCameraManager.Instance.NumDevices > 0) {
+						/*Mode 19 is framepacking mode*/
+						AVProLiveCameraManager.Instance.GetDevice(0).Close();
+						if (AVProLiveCameraManager.Instance.NumDevices > 1) {
+							AVProLiveCameraManager.Instance.GetDevice(1).Close();
+						}
+						AVProLiveCameraManager.Instance.GetDevice(0).Start (19, -1);
+					}
+				}
 			}
 			/*2x C300 Framepacking*/
 			if (GUILayout.Toggle(_selectedMode[2], "2x Canon EOS C300")) {
 				NewSelection(2);
+				if (_currSelection != lastSelection) {
+					if (AVProLiveCameraManager.Instance.NumDevices > 1) {
+						AVProLiveCameraManager.Instance.GetDevice(0).Close();
+						AVProLiveCameraManager.Instance.GetDevice(1).Close();
+						AVProLiveCameraManager.Instance.GetDevice(0).Start (5,-1);
+						AVProLiveCameraManager.Instance.GetDevice(1).Start (5,-1);
+					}
+				}
 			}
 
 			/*Demo mode Video S3D*/
@@ -176,6 +203,7 @@ public class InputSelector : MonoBehaviour {
 					AVProLiveCameraDevice device = AVProLiveCameraManager.Instance.GetDevice(0);
 					/*Create a camera rectangle*/
 					Rect cameraRect = GUILayoutUtility.GetRect(300, 168);
+					GUI.Button(cameraRect, device.OutputTexture);
 					GUILayout.Box("Camera 1: "  + device.Name);
 					GUILayout.EndVertical();
 				} else {
@@ -186,17 +214,23 @@ public class InputSelector : MonoBehaviour {
 			if (_currSelection == 2) {
 				/*----> Start vertical control group. <----*/
 				if (AVProLiveCameraManager.Instance.NumDevices > 1) {
+					GUILayout.BeginHorizontal();
 					GUILayout.BeginVertical("box", GUILayout.MaxWidth(300));
 					AVProLiveCameraDevice device1 = AVProLiveCameraManager.Instance.GetDevice(0);
 					/*Create a camera rectangle*/
 					Rect cameraRect1 = GUILayoutUtility.GetRect(300, 168);
+					GUI.Button(cameraRect1, device1.OutputTexture);
 					GUILayout.Box("Camera 1: "  + device1.Name);
+					GUILayout.EndVertical();
 
+					GUILayout.BeginVertical();
 					AVProLiveCameraDevice device2 = AVProLiveCameraManager.Instance.GetDevice(1);
 					/*Create a camera rectangle*/
 					Rect cameraRect2 = GUILayoutUtility.GetRect(300, 168);
+					GUI.Button(cameraRect2, device2.OutputTexture);
 					GUILayout.Box("Camera 2: "  + device2.Name);
 					GUILayout.EndVertical();
+					GUILayout.EndHorizontal();
 				} else {
 					GUILayout.Label("Caution: There are no two cameras connected! The Input has to be SDI or maybe you have chosen the wrong mode.");
 				}
@@ -240,28 +274,32 @@ public class InputSelector : MonoBehaviour {
 	
 		if (_selectedMode[0]) {
 			_chosenDevice1 = AVProLiveCameraManager.Instance.GetDevice(0);
-			/*Mode 5 is side by side*/
-			_chosenDevice1.Start();
 			Config.CurrentFormat = StereoFormat.SideBySide;
+			Config.AVDevice1 = _chosenDevice1;
+			Config.AVDevice2 = null;
 		} 
 		if (_selectedMode[1]) {
 			_chosenDevice1 = AVProLiveCameraManager.Instance.GetDevice(0);
-			/*Mode 19 is framepacking mode*/
-			_chosenDevice1.Start(19, -1);
 			Config.CurrentFormat = StereoFormat.FramePacking;
+			Config.AVDevice1 = _chosenDevice1;
+			Config.AVDevice2 = null;
 		}
 		if (_selectedMode[2]) {
 			_chosenDevice1 = AVProLiveCameraManager.Instance.GetDevice(0);
 			_chosenDevice2 = AVProLiveCameraManager.Instance.GetDevice(1);
-			_chosenDevice1.Start(5, -1);
-			_chosenDevice2.Start(5, -1);
 			Config.CurrentFormat = StereoFormat.TwoCameras;
+			Config.AVDevice1 = _chosenDevice1;
+			Config.AVDevice2 = _chosenDevice2;
 		}
 		if (_selectedMode[3]) {
 			Config.CurrentFormat = StereoFormat.VideoSample;
+			Config.AVDevice1 = null;
+			Config.AVDevice2 = null;
 		}
 		if (_selectedMode[4]) {
 			Config.CurrentFormat = StereoFormat.DemoMode;
+			Config.AVDevice1 = null;
+			Config.AVDevice2 = null;
 		}
 
 	}
