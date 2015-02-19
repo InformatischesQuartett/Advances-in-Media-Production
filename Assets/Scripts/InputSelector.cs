@@ -12,6 +12,7 @@ public class InputSelector : MonoBehaviour {
 
 	private bool _enableGUI;
 	private bool _buttonPressed = false;
+	private bool _helpButtonPressed = false;
 
 	/*Camera Modes for Toggle*/
 
@@ -261,11 +262,12 @@ public class InputSelector : MonoBehaviour {
 			//Help Button
 
 			if (GUI.Button (new Rect (Screen.width * 0.93f, Screen.height * 0.02f, Screen.width * 0.035f, Screen.height * 0.06f), "?")) {
-				_buttonPressed = !_buttonPressed;
+				_helpButtonPressed = !_helpButtonPressed;
+				_buttonPressed = true;
 
 			}
 
-			if (_buttonPressed) {
+			if (_helpButtonPressed) {
 				GUI.Label (new Rect (Screen.width/ 1.6f, Screen.height * 0.10f, Screen.width * 0.30f, Screen.height * 0.8f), "This is Cyclops - a S3D camera viewfinder for composition on set. You'll need a Sony3D or two Canon EOS C300 cameras plus the Oculus Rift DK2. Please read the documentation for further information.\n Application created by Fabian Gaertner, Sarah Haefele, Alexander Scheurer and Linda Schey for the subject Advanced Media Production at Hochschule Furtwangen in January 2015.");
 			}
 
