@@ -136,9 +136,9 @@ public class InputSelector : MonoBehaviour {
 		GUI.DrawTexture (new Rect (0, 0, Screen.width, Screen.height), _backgroundTex);
 		int lastSelection = _currSelection;
 
-		GUI.skin.label.fontSize = (int) (Screen.height * 0.03f);
-		GUI.skin.button.fontSize = (int) (Screen.height * 0.03f);
-		GUI.skin.toggle.fontSize = (int) (Screen.height * 0.03f);
+		GUI.skin.label.fontSize = (int) (Screen.height * 0.025f);
+		GUI.skin.button.fontSize = (int) (Screen.height * 0.025f);
+		GUI.skin.toggle.fontSize = (int) (Screen.height * 0.025f);
 
 		if (_enableGUI) {
 			/*----> Start horizontal scrollview area <----*/
@@ -236,7 +236,7 @@ public class InputSelector : MonoBehaviour {
 					GUILayout.Label("Caution: There are no two cameras connected! The Input has to be SDI or maybe you have chosen the wrong mode.");
 				}
 			}
-			GUILayout.BeginVertical("box", GUILayout.MaxWidth(Screen.width*0.5f), GUILayout.MaxHeight(Screen.height * 0.60f));
+			GUILayout.BeginVertical("box", GUILayout.MaxWidth(Screen.width*0.5f));
 			if (_currSelection == 0 || _currSelection == 1) {
 				GUILayout.Label("If there is no camera image to see, please make sure the Sony camera is plugged in to the first HDMI-In slot and it is set to 3D mode with the corresponding 3D setting. For other problem solving solutions see the instructions below.\n");
 			}
