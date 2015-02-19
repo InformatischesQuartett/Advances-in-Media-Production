@@ -136,13 +136,11 @@ public class InputSelector : MonoBehaviour {
 		GUI.DrawTexture (new Rect (0, 0, Screen.width, Screen.height), _backgroundTex);
 		int lastSelection = _currSelection;
 
-		GUI.skin.label.fontSize = (int) (Screen.height * 0.025f);
-		GUI.skin.button.fontSize = (int) (Screen.height * 0.025f);
-		GUI.skin.toggle.fontSize = (int) (Screen.height * 0.025f);
+		GUI.skin.label.fontSize = 16;
 
 		if (_enableGUI) {
 			/*----> Start horizontal scrollview area <----*/
-			_horizScrollPos = GUILayout.BeginScrollView(_horizScrollPos, false, false, GUILayout.Width(Screen.width * 0.43f), GUILayout.Height(Screen.height * 0.8f));
+			_horizScrollPos = GUILayout.BeginScrollView(_horizScrollPos, false, false, GUILayout.Width(Screen.width * 0.7f), GUILayout.Height(Screen.height * 0.8f));
 			GUILayout.Label("Please select a mode from the list below:");
 
 			/*Sony Side by Side*/
@@ -198,11 +196,9 @@ public class InputSelector : MonoBehaviour {
 			if (_currSelection == 0 || _currSelection == 1) {
 				if (AVProLiveCameraManager.Instance.NumDevices > 0) {
 					/*----> Start vertical control group. <----*/
-					//GUILayout.BeginVertical("box", GUILayout.MaxWidth(300f));
 					GUILayout.BeginVertical("box", GUILayout.MaxWidth(Screen.width*0.34f));
 					AVProLiveCameraDevice device = AVProLiveCameraManager.Instance.GetDevice(0);
 					/*Create a camera rectangle*/
-					//Rect cameraRect = GUILayoutUtility.GetRect(300, 168);
 					Rect cameraRect = GUILayoutUtility.GetRect(Screen.width*0.34f, Screen.height*0.33f);
 					GUI.Button(cameraRect, device.OutputTexture);
 					GUILayout.Box("Camera 1: "  + device.Name);
@@ -244,7 +240,7 @@ public class InputSelector : MonoBehaviour {
 				GUILayout.Label("If there is no camera image to see, please make sure that both camera are plugged in to the right SDI-In slot. See the documentation for further information to this topic.For other problem solving solutions see the instructions below.\n");
 			}
 
-			GUILayout.Label("If there are no cameras detected there could be a problem with the Blackmagic options. You need to configure them in the Control Center.");
+			GUILayout.Label("If there are no cameras detected there could be a problem with the Blackmagic options. You need to configure them in the Control Center.\n\n");
 			if (GUILayout.Button ("Open Blackmagic Control Center")) {
 				_buttonPressed = true;
 				try {
@@ -264,7 +260,6 @@ public class InputSelector : MonoBehaviour {
 			GUI.Label (new Rect (Screen.width * 0.02f, Screen.height / 1.2f, Screen.width, Screen.height * 0.10f), "Input Selector", _fontStyle);
 			//Help Button
 
-			//GUI.Label (new Rect (Screen.width/ 1.13f, 10, 40,100), "Hallo");
 			if (GUI.Button (new Rect (Screen.width * 0.93f, Screen.height * 0.02f, Screen.width * 0.035f, Screen.height * 0.06f), "?")) {
 				_buttonPressed = !_buttonPressed;
 
