@@ -7,18 +7,18 @@ public class GuiPanel : MonoBehaviour
     private bool _gui;
     private Sprite _guiSprite;
     private Info _info;
+    private GameObject _parentGuiBottom;
+    private GameObject _parentGuiCamRig;
     private ScreenControlls _screens;
     private Text _staticSettingsText;
     private Text[] _texts;
-    private GameObject _parentGuiCamRig;
-    private GameObject _parentGuiBottom;
 
     // Use this for initialization
     private void Awake()
     {
         _parentGuiBottom = GameObject.Find("GuiBottomParent");
         _parentGuiCamRig = GameObject.Find("OVRCameraRig");
-        this.transform.parent = _parentGuiBottom.transform;
+        transform.parent = _parentGuiBottom.transform;
         _screens = FindObjectOfType<ScreenControlls>();
         _screens.GuiTextUpdate = UpdateGuiText;
         _info = new Info();
@@ -60,7 +60,8 @@ public class GuiPanel : MonoBehaviour
         {
             var s = new Vector2(Config.CurrentPreset.ScreenSize*Config.AspectRatioNorm.x,
                 Config.CurrentPreset.ScreenSize*Config.AspectRatioNorm.z);
-            _info.UpdateInfo(Config.CurrentPreset.Name, Config.CurrentPreset.ScreenDistance, s, _screens.Hit, Config.CurrentColor);
+            _info.UpdateInfo(Config.CurrentPreset.Name, Config.CurrentPreset.ScreenDistance, s, _screens.Hit,
+                Config.CurrentColor);
         }
         else
         {
@@ -72,7 +73,8 @@ public class GuiPanel : MonoBehaviour
                   _info.Size.x.ToString("0.00") +
                   "\nScreen Height: " + _info.Size.y.ToString("0.00") +
                   "\nHIT: " + _info.HIT.ToString("0.00") +
-                  "\nBackground Color (RGB): " + _info.BackgroundColor.r + "," +_info.BackgroundColor.g+ ","+_info.BackgroundColor.b;
+                  "\nBackground Color (RGB): " + _info.BackgroundColor.r + "," + _info.BackgroundColor.g + "," +
+                  _info.BackgroundColor.b;
         _configurableSettingsText.text = newText;
     }
 
@@ -85,19 +87,19 @@ public class GuiPanel : MonoBehaviour
             if (_gui == false)
             {
                 //Set gui pos to camera view
-                this.transform.parent = _parentGuiCamRig.transform;
-                this.transform.position = new Vector3(0, 0, 0.2f);
+                transform.parent = _parentGuiCamRig.transform;
+                transform.localPosition = new Vector3(0, 0, 0.2f);
                 transform.localEulerAngles = new Vector3(0, 0, 0);
-                this.transform.localScale = new Vector3(0.001f, 0.001f, 1);
+                transform.localScale = new Vector3(0.001f, 0.001f, 1);
                 GetComponent<Canvas>().GetComponent<Image>().color = new Color(0, 0, 0, 0.1f);
                 GetComponent<Canvas>().GetComponent<Image>().sprite = null;
                 _gui = true;
             }
             else
             {
-                this.transform.parent = _parentGuiBottom.transform;
                 //set gui pos to bottom
-                transform.position = new Vector3(0, -130, 70);
+                transform.parent = _parentGuiBottom.transform;
+                transform.localPosition = new Vector3(0, -130, 70);
                 transform.localEulerAngles = new Vector3(90, 0, 0);
                 transform.localScale = new Vector3(1, 1, 1);
                 GetComponent<Canvas>().GetComponent<Image>().color = new Color(1, 1, 1, 0.2f);
