@@ -11,7 +11,7 @@ public class InputSelector : MonoBehaviour {
 	private float _waitingTime;
 
 	private bool _enableGUI;
-	private bool _helpPressed = false;
+	private bool _buttonPressed = false;
 
 	/*Camera Modes for Toggle*/
 
@@ -66,7 +66,7 @@ public class InputSelector : MonoBehaviour {
 	void Update () {
 
 		/*Change to main application after certain amount of time without any selection*/
-		if (_currSelection == -1 && !_helpPressed) {
+		if (_currSelection == -1 && !_buttonPressed) {
 
 			float timeLeft = _waitingTime - Time.time; 
 			if (timeLeft < 0) {
@@ -246,6 +246,7 @@ public class InputSelector : MonoBehaviour {
 
 			GUILayout.Label("If there are no cameras detected there could be a problem with the Blackmagic options. You need to configure them in the Control Center.");
 			if (GUILayout.Button ("Open Blackmagic Control Center")) {
+				_buttonPressed = true;
 				try {
 					Application.OpenURL(@"C:\Program Files (x86)\Blackmagic Design\Blackmagic Desktop Video\desktopcp.exe");
 				} catch (UnityException e) {
@@ -265,11 +266,11 @@ public class InputSelector : MonoBehaviour {
 
 			//GUI.Label (new Rect (Screen.width/ 1.13f, 10, 40,100), "Hallo");
 			if (GUI.Button (new Rect (Screen.width * 0.93f, Screen.height * 0.02f, Screen.width * 0.035f, Screen.height * 0.06f), "?")) {
-				_helpPressed = !_helpPressed;
+				_buttonPressed = !_buttonPressed;
 
 			}
 
-			if (_helpPressed) {
+			if (_buttonPressed) {
 				GUI.Label (new Rect (Screen.width/ 1.6f, Screen.height * 0.10f, Screen.width * 0.30f, Screen.height * 0.8f), "This is Cyclops - a S3D camera viewfinder for composition on set. You'll need a Sony3D or two Canon EOS C300 cameras plus the Oculus Rift DK2. Please read the documentation for further information.\n Application created by Fabian Gaertner, Sarah Haefele, Alexander Scheurer and Linda Schey for the subject Advanced Media Production at Hochschule Furtwangen in January 2015.");
 			}
 
