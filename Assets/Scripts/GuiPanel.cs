@@ -88,10 +88,10 @@ public class GuiPanel : MonoBehaviour
             {
                 //Set gui pos to camera view
                 transform.parent = _parentGuiCamRig.transform;
-                transform.localPosition = new Vector3(0, 0, 0.2f);
+                transform.localPosition = new Vector3(0, 0, 0.5f);
                 transform.localEulerAngles = new Vector3(0, 0, 0);
-                transform.localScale = new Vector3(0.001f, 0.001f, 1);
-                GetComponent<Canvas>().GetComponent<Image>().color = new Color(0, 0, 0, 0.1f);
+                transform.localScale = new Vector3(0.0035f, 0.0035f, 1);
+                GetComponent<Canvas>().GetComponent<Image>().color = new Color(0, 0, 0, 0.5f);
                 GetComponent<Canvas>().GetComponent<Image>().sprite = null;
                 _gui = true;
             }
@@ -102,7 +102,6 @@ public class GuiPanel : MonoBehaviour
                 transform.localPosition = new Vector3(0, -130, 70);
                 transform.localEulerAngles = new Vector3(90, 0, 0);
                 transform.localScale = new Vector3(1, 1, 1);
-                GetComponent<Canvas>().GetComponent<Image>().color = new Color(1, 1, 1, 0.2f);
                 GetComponent<Canvas>().GetComponent<Image>().color = new Color(1, 1, 1, 1);
                 GetComponent<Canvas>().GetComponent<Image>().sprite = _guiSprite;
                 _gui = false;
