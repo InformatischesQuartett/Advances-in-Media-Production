@@ -101,8 +101,8 @@ public class CreateTwoTextures : MonoBehaviour
 
         if (Config.CurrentFormat == StereoFormat.SideBySide)
         {
-            Left = new Texture2D(860, 1080, TextureFormat.RGB24, false);
-            Right = new Texture2D(860, 1080, TextureFormat.RGB24, false);
+            Left = new Texture2D(960, 1080, TextureFormat.RGB24, false);
+            Right = new Texture2D(960, 1080, TextureFormat.RGB24, false);
         }
         else
         {
