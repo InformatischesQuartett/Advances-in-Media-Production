@@ -10,10 +10,15 @@ public class GuiPanel : MonoBehaviour
     private ScreenControlls _screens;
     private Text _staticSettingsText;
     private Text[] _texts;
+    private GameObject _parentGuiCamRig;
+    private GameObject _parentGuiBottom;
 
     // Use this for initialization
     private void Awake()
     {
+        _parentGuiBottom = GameObject.Find("GuiBottomParent");
+        _parentGuiCamRig = GameObject.Find("OVRCameraRig");
+        this.transform.parent = _parentGuiBottom.transform;
         _screens = FindObjectOfType<ScreenControlls>();
         _screens.GuiTextUpdate = UpdateGuiText;
         _info = new Info();
@@ -80,18 +85,20 @@ public class GuiPanel : MonoBehaviour
             if (_gui == false)
             {
                 //Set gui pos to camera view
-                transform.position = new Vector3(0, 0, 0.1f);
-                transform.eulerAngles = new Vector3(0, 0, 0);
-                transform.localScale = new Vector3(0.001f, 0.001f, 1);
-                GetComponent<Canvas>().GetComponent<Image>().color = new Color(0, 0, 0, 0.2f);
+                this.transform.parent = _parentGuiCamRig.transform;
+                this.transform.position = new Vector3(0, 0, 0.2f);
+                transform.localEulerAngles = new Vector3(0, 0, 0);
+                this.transform.localScale = new Vector3(0.001f, 0.001f, 1);
+                GetComponent<Canvas>().GetComponent<Image>().color = new Color(0, 0, 0, 0.1f);
                 GetComponent<Canvas>().GetComponent<Image>().sprite = null;
                 _gui = true;
             }
             else
             {
+                this.transform.parent = _parentGuiBottom.transform;
                 //set gui pos to bottom
                 transform.position = new Vector3(0, -130, 70);
-                transform.eulerAngles = new Vector3(90, 0, 0);
+                transform.localEulerAngles = new Vector3(90, 0, 0);
                 transform.localScale = new Vector3(1, 1, 1);
                 GetComponent<Canvas>().GetComponent<Image>().color = new Color(1, 1, 1, 0.2f);
                 GetComponent<Canvas>().GetComponent<Image>().color = new Color(1, 1, 1, 1);
