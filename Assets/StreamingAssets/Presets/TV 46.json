@@ -1,0 +1,11 @@
+{
+  "Name": "TV - 46 Zoll",
+  "ScreenDistance": 2.6,
+  "ScreenSize": 1.03,
+  "BackgroundColor": [
+    0.3,
+    0.3,
+    0.3
+  ],
+  "AspectRatioNorm": "horizontal"
+}
