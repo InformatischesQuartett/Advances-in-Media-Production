@@ -56,6 +56,7 @@ public class GuiPanel : MonoBehaviour
     private void UpdateGuiText()
     {
         string newText;
+		//float distance = _info.Distance *= 0.1f;
         if (Config.CleanPreset)
         {
             var s = new Vector2(Config.CurrentPreset.ScreenSize*Config.AspectRatioNorm.x,
@@ -69,7 +70,7 @@ public class GuiPanel : MonoBehaviour
                 _screens.ScreenSize*Config.AspectRatioNorm.z);
             _info.UpdateInfo("No Preset", _screens.ScreenDistance, s, _screens.Hit, Config.CurrentColor);
         }
-        newText = "Preset: " + _info.Name + "\nDistance: " + _info.Distance.ToString("0.00") + "\nScreen Width: " +
+		newText = "Preset: " + _info.Name + "\nDistance: " + (_info.Distance *0.1f).ToString("0.00") + "\nScreen Width: " +
                   _info.Size.x.ToString("0.00") +
                   "\nScreen Height: " + _info.Size.y.ToString("0.00") +
                   "\nHIT: " + _info.HIT.ToString("0.00") +

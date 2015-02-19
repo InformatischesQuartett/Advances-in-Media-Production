@@ -78,9 +78,9 @@ public static class Config {
         string configContent = File.ReadAllText(_configPath + @"/config.json");
         var conf = JsonConvert.DeserializeObject<ConfigSet>(configContent);
 
-        ScreenDistanceDefault = conf.ScreenDistanceDefault;
+        ScreenDistanceDefault = conf.ScreenDistanceDefault * 10.0f;
         ScreenDistanceSensitivity = conf.ScreenDistanceSensitivity;
-        ScreenSizeDefault = conf.ScreenSizeDefault * 0.1f;
+		ScreenSizeDefault = conf.ScreenSizeDefault;
         ScreenSizeSensitivity = conf.ScreenSizeSensitivity;
         HitDefault = conf.HitDefault;
         HitSensitivity = conf.HitSensitivity;
@@ -117,7 +117,7 @@ public static class Config {
                 if (string.IsNullOrEmpty(preset.Name))
                     preset.Name = Path.GetFileNameWithoutExtension(file);
 
-                preset.ScreenSize *= 0.1f;
+				preset.ScreenDistance *= 10.0f;
                 Presets.Add(preset);
             }
         }
