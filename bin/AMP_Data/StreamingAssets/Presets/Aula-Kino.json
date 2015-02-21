@@ -1,0 +1,11 @@
+{
+  "Name": "Aula Kino",
+  "ScreenDistance": 10,
+  "ScreenSize": 6.90,
+  "BackgroundColor": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "AspectRatioNorm": "horizontal"
+}

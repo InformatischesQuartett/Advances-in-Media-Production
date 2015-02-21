@@ -1,0 +1,13 @@
+{
+"Colors":[[1,1,1],[0.8,0.8,0.8],[0.6,0.6,0.6],[0.4,0.4,0.4],[0.2,0.2,0.2],[0,0,0]],
+"ScreenSizeDefault": 1,
+"ScreenSizeSensitivity": 1,
+"ScreenDistanceDefault": 5,
+"ScreenDistanceSensitivity": 10,
+"HitDefault": 0,
+"HitSensitivity": 10,
+"DefaultAspectRatioX": 16,
+"DefaultAspectRatioY": 9,
+"AspectRatioNorm": "horizontal",
+"Monoscopic": false,
+}
