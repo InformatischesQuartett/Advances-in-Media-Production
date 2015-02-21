@@ -1,81 +1,75 @@
-Initialize engine version: 4.6.2f1 (bd99309c2ad7)
+Initialize engine version: 4.6.1f1 (d1db7a1b5196)
 GfxDevice: creating device client; threaded=1
 Direct3D:
-    Version:  Direct3D 9.0c [aticfx32.dll 8.17.10.1333]
-    Renderer: AMD Radeon HD 6670
-    Vendor:   ATI
-    VRAM:     1008 MB (via DXGI)
-    Caps:     Shader=30 DepthRT=1 NativeDepth=1 NativeShadow=1 DF16=1 INTZ=1 RAWZ=0 NULL=1 RESZ=1 SlowINTZ=1
+    Version:  Direct3D 9.0c [nvd3dum.dll 9.18.13.4752]
+    Renderer: NVIDIA GeForce GTX 770
+    Vendor:   NVIDIA
+    VRAM:     3072 MB (via DXGI)
+    Caps:     Shader=30 DepthRT=1 NativeDepth=1 NativeShadow=1 DF16=0 INTZ=1 RAWZ=0 NULL=1 RESZ=0 SlowINTZ=0
 Begin MonoManager ReloadAssembly
-Platform assembly: C:\Users\Koffer\Documents\GitHub\Advances-in-Media-Production\bin\AMP_Data\Managed\UnityEngine.dll (this message is harmless)
-Loading C:\Users\Koffer\Documents\GitHub\Advances-in-Media-Production\bin\AMP_Data\Managed\UnityEngine.dll into Unity Child Domain
-Platform assembly: C:\Users\Koffer\Documents\GitHub\Advances-in-Media-Production\bin\AMP_Data\Managed\Assembly-CSharp.dll (this message is harmless)
-Loading C:\Users\Koffer\Documents\GitHub\Advances-in-Media-Production\bin\AMP_Data\Managed\Assembly-CSharp.dll into Unity Child Domain
-Platform assembly: C:\Users\Koffer\Documents\GitHub\Advances-in-Media-Production\bin\AMP_Data\Managed\UnityEngine.UI.dll (this message is harmless)
-Loading C:\Users\Koffer\Documents\GitHub\Advances-in-Media-Production\bin\AMP_Data\Managed\UnityEngine.UI.dll into Unity Child Domain
-Platform assembly: C:\Users\Koffer\Documents\GitHub\Advances-in-Media-Production\bin\AMP_Data\Managed\Emgu.CV.dll (this message is harmless)
-Loading C:\Users\Koffer\Documents\GitHub\Advances-in-Media-Production\bin\AMP_Data\Managed\Emgu.CV.dll into Unity Child Domain
-Platform assembly: C:\Users\Koffer\Documents\GitHub\Advances-in-Media-Production\bin\AMP_Data\Managed\Emgu.CV.GPU.dll (this message is harmless)
-Loading C:\Users\Koffer\Documents\GitHub\Advances-in-Media-Production\bin\AMP_Data\Managed\Emgu.CV.GPU.dll into Unity Child Domain
-Platform assembly: C:\Users\Koffer\Documents\GitHub\Advances-in-Media-Production\bin\AMP_Data\Managed\Emgu.CV.ML.dll (this message is harmless)
-Loading C:\Users\Koffer\Documents\GitHub\Advances-in-Media-Production\bin\AMP_Data\Managed\Emgu.CV.ML.dll into Unity Child Domain
-Platform assembly: C:\Users\Koffer\Documents\GitHub\Advances-in-Media-Production\bin\AMP_Data\Managed\Emgu.CV.OCR.dll (this message is harmless)
-Loading C:\Users\Koffer\Documents\GitHub\Advances-in-Media-Production\bin\AMP_Data\Managed\Emgu.CV.OCR.dll into Unity Child Domain
-Platform assembly: C:\Users\Koffer\Documents\GitHub\Advances-in-Media-Production\bin\AMP_Data\Managed\Emgu.CV.OpenCL.dll (this message is harmless)
-Loading C:\Users\Koffer\Documents\GitHub\Advances-in-Media-Production\bin\AMP_Data\Managed\Emgu.CV.OpenCL.dll into Unity Child Domain
-Platform assembly: C:\Users\Koffer\Documents\GitHub\Advances-in-Media-Production\bin\AMP_Data\Managed\Emgu.CV.Stitching.dll (this message is harmless)
-Loading C:\Users\Koffer\Documents\GitHub\Advances-in-Media-Production\bin\AMP_Data\Managed\Emgu.CV.Stitching.dll into Unity Child Domain
-Platform assembly: C:\Users\Koffer\Documents\GitHub\Advances-in-Media-Production\bin\AMP_Data\Managed\Emgu.CV.UI.dll (this message is harmless)
-Loading C:\Users\Koffer\Documents\GitHub\Advances-in-Media-Production\bin\AMP_Data\Managed\Emgu.CV.UI.dll into Unity Child Domain
-Platform assembly: C:\Users\Koffer\Documents\GitHub\Advances-in-Media-Production\bin\AMP_Data\Managed\Emgu.CV.VideoStab.dll (this message is harmless)
-Loading C:\Users\Koffer\Documents\GitHub\Advances-in-Media-Production\bin\AMP_Data\Managed\Emgu.CV.VideoStab.dll into Unity Child Domain
-Platform assembly: C:\Users\Koffer\Documents\GitHub\Advances-in-Media-Production\bin\AMP_Data\Managed\Emgu.Util.dll (this message is harmless)
-Loading C:\Users\Koffer\Documents\GitHub\Advances-in-Media-Production\bin\AMP_Data\Managed\Emgu.Util.dll into Unity Child Domain
-Platform assembly: C:\Users\Koffer\Documents\GitHub\Advances-in-Media-Production\bin\AMP_Data\Managed\LetThereBeLight.dll (this message is harmless)
-Loading C:\Users\Koffer\Documents\GitHub\Advances-in-Media-Production\bin\AMP_Data\Managed\LetThereBeLight.dll into Unity Child Domain
-Platform assembly: C:\Users\Koffer\Documents\GitHub\Advances-in-Media-Production\bin\AMP_Data\Managed\Newtonsoft.Json.dll (this message is harmless)
-Loading C:\Users\Koffer\Documents\GitHub\Advances-in-Media-Production\bin\AMP_Data\Managed\Newtonsoft.Json.dll into Unity Child Domain
-Platform assembly: C:\Users\Koffer\Documents\GitHub\Advances-in-Media-Production\bin\AMP_Data\Managed\System.Drawing.dll (this message is harmless)
-Loading C:\Users\Koffer\Documents\GitHub\Advances-in-Media-Production\bin\AMP_Data\Managed\System.Drawing.dll into Unity Child Domain
-Platform assembly: C:\Users\Koffer\Documents\GitHub\Advances-in-Media-Production\bin\AMP_Data\Managed\ZedGraph.dll (this message is harmless)
-Loading C:\Users\Koffer\Documents\GitHub\Advances-in-Media-Production\bin\AMP_Data\Managed\ZedGraph.dll into Unity Child Domain
+Platform assembly: E:\Dropbox\HS Furtwangen\Master\1. Semester\AdvMProd\Anwendung\bin\AMP_Data\Managed\UnityEngine.dll (this message is harmless)
+Loading E:\Dropbox\HS Furtwangen\Master\1. Semester\AdvMProd\Anwendung\bin\AMP_Data\Managed\UnityEngine.dll into Unity Child Domain
+Platform assembly: E:\Dropbox\HS Furtwangen\Master\1. Semester\AdvMProd\Anwendung\bin\AMP_Data\Managed\Assembly-CSharp.dll (this message is harmless)
+Loading E:\Dropbox\HS Furtwangen\Master\1. Semester\AdvMProd\Anwendung\bin\AMP_Data\Managed\Assembly-CSharp.dll into Unity Child Domain
+Platform assembly: E:\Dropbox\HS Furtwangen\Master\1. Semester\AdvMProd\Anwendung\bin\AMP_Data\Managed\UnityEngine.UI.dll (this message is harmless)
+Loading E:\Dropbox\HS Furtwangen\Master\1. Semester\AdvMProd\Anwendung\bin\AMP_Data\Managed\UnityEngine.UI.dll into Unity Child Domain
+Platform assembly: E:\Dropbox\HS Furtwangen\Master\1. Semester\AdvMProd\Anwendung\bin\AMP_Data\Managed\Emgu.CV.dll (this message is harmless)
+Loading E:\Dropbox\HS Furtwangen\Master\1. Semester\AdvMProd\Anwendung\bin\AMP_Data\Managed\Emgu.CV.dll into Unity Child Domain
+Platform assembly: E:\Dropbox\HS Furtwangen\Master\1. Semester\AdvMProd\Anwendung\bin\AMP_Data\Managed\Emgu.CV.GPU.dll (this message is harmless)
+Loading E:\Dropbox\HS Furtwangen\Master\1. Semester\AdvMProd\Anwendung\bin\AMP_Data\Managed\Emgu.CV.GPU.dll into Unity Child Domain
+Platform assembly: E:\Dropbox\HS Furtwangen\Master\1. Semester\AdvMProd\Anwendung\bin\AMP_Data\Managed\Emgu.CV.ML.dll (this message is harmless)
+Loading E:\Dropbox\HS Furtwangen\Master\1. Semester\AdvMProd\Anwendung\bin\AMP_Data\Managed\Emgu.CV.ML.dll into Unity Child Domain
+Platform assembly: E:\Dropbox\HS Furtwangen\Master\1. Semester\AdvMProd\Anwendung\bin\AMP_Data\Managed\Emgu.CV.OCR.dll (this message is harmless)
+Loading E:\Dropbox\HS Furtwangen\Master\1. Semester\AdvMProd\Anwendung\bin\AMP_Data\Managed\Emgu.CV.OCR.dll into Unity Child Domain
+Platform assembly: E:\Dropbox\HS Furtwangen\Master\1. Semester\AdvMProd\Anwendung\bin\AMP_Data\Managed\Emgu.CV.OpenCL.dll (this message is harmless)
+Loading E:\Dropbox\HS Furtwangen\Master\1. Semester\AdvMProd\Anwendung\bin\AMP_Data\Managed\Emgu.CV.OpenCL.dll into Unity Child Domain
+Platform assembly: E:\Dropbox\HS Furtwangen\Master\1. Semester\AdvMProd\Anwendung\bin\AMP_Data\Managed\Emgu.CV.Stitching.dll (this message is harmless)
+Loading E:\Dropbox\HS Furtwangen\Master\1. Semester\AdvMProd\Anwendung\bin\AMP_Data\Managed\Emgu.CV.Stitching.dll into Unity Child Domain
+Platform assembly: E:\Dropbox\HS Furtwangen\Master\1. Semester\AdvMProd\Anwendung\bin\AMP_Data\Managed\Emgu.CV.UI.dll (this message is harmless)
+Loading E:\Dropbox\HS Furtwangen\Master\1. Semester\AdvMProd\Anwendung\bin\AMP_Data\Managed\Emgu.CV.UI.dll into Unity Child Domain
+Platform assembly: E:\Dropbox\HS Furtwangen\Master\1. Semester\AdvMProd\Anwendung\bin\AMP_Data\Managed\Emgu.CV.VideoStab.dll (this message is harmless)
+Loading E:\Dropbox\HS Furtwangen\Master\1. Semester\AdvMProd\Anwendung\bin\AMP_Data\Managed\Emgu.CV.VideoStab.dll into Unity Child Domain
+Platform assembly: E:\Dropbox\HS Furtwangen\Master\1. Semester\AdvMProd\Anwendung\bin\AMP_Data\Managed\Emgu.Util.dll (this message is harmless)
+Loading E:\Dropbox\HS Furtwangen\Master\1. Semester\AdvMProd\Anwendung\bin\AMP_Data\Managed\Emgu.Util.dll into Unity Child Domain
+Platform assembly: E:\Dropbox\HS Furtwangen\Master\1. Semester\AdvMProd\Anwendung\bin\AMP_Data\Managed\LetThereBeLight.dll (this message is harmless)
+Loading E:\Dropbox\HS Furtwangen\Master\1. Semester\AdvMProd\Anwendung\bin\AMP_Data\Managed\LetThereBeLight.dll into Unity Child Domain
+Platform assembly: E:\Dropbox\HS Furtwangen\Master\1. Semester\AdvMProd\Anwendung\bin\AMP_Data\Managed\Newtonsoft.Json.dll (this message is harmless)
+Loading E:\Dropbox\HS Furtwangen\Master\1. Semester\AdvMProd\Anwendung\bin\AMP_Data\Managed\Newtonsoft.Json.dll into Unity Child Domain
+Platform assembly: E:\Dropbox\HS Furtwangen\Master\1. Semester\AdvMProd\Anwendung\bin\AMP_Data\Managed\System.Drawing.dll (this message is harmless)
+Loading E:\Dropbox\HS Furtwangen\Master\1. Semester\AdvMProd\Anwendung\bin\AMP_Data\Managed\System.Drawing.dll into Unity Child Domain
+Platform assembly: E:\Dropbox\HS Furtwangen\Master\1. Semester\AdvMProd\Anwendung\bin\AMP_Data\Managed\ZedGraph.dll (this message is harmless)
+Loading E:\Dropbox\HS Furtwangen\Master\1. Semester\AdvMProd\Anwendung\bin\AMP_Data\Managed\ZedGraph.dll into Unity Child Domain
 - Completed reload, in  0.056 seconds
-desktop: 1920x1200 60Hz; virtual: 1920x1200 at 0,0
+desktop: 1920x1080 60Hz; virtual: 3840x1080 at 0,0
 <RI> Initializing input.
 <RI> Input initialized.
-Platform assembly: C:\Users\Koffer\Documents\GitHub\Advances-in-Media-Production\bin\AMP_Data\Managed\System.Core.dll (this message is harmless)
-Platform assembly: C:\Users\Koffer\Documents\GitHub\Advances-in-Media-Production\bin\AMP_Data\Managed\System.dll (this message is harmless)
-UnloadTime: 0.617891 ms
+Platform assembly: E:\Dropbox\HS Furtwangen\Master\1. Semester\AdvMProd\Anwendung\bin\AMP_Data\Managed\System.Core.dll (this message is harmless)
 [AVProLiveCamera] version 1.94 initialised
  
-(Filename: C:/buildslave/unity/build/artifacts/StandalonePlayerGenerated/UnityEngineDebug.cpp Line: 56)
+(Filename: C:/BuildAgent/work/d63dfc6385190b60/artifacts/StandalonePlayerGenerated/UnityEngineDebug.cpp Line: 49)
+
+Device: ManyCam Virtual Webcam
+ 
+(Filename: C:/BuildAgent/work/d63dfc6385190b60/artifacts/StandalonePlayerGenerated/UnityEngineDebug.cpp Line: 49)
 
 AVProLiveCameraDevice
  
-(Filename: C:/buildslave/unity/build/artifacts/StandalonePlayerGenerated/UnityEngineDebug.cpp Line: 56)
+(Filename: C:/BuildAgent/work/d63dfc6385190b60/artifacts/StandalonePlayerGenerated/UnityEngineDebug.cpp Line: 49)
 
-AVProLiveCameraDevice
- 
-(Filename: C:/buildslave/unity/build/artifacts/StandalonePlayerGenerated/UnityEngineDebug.cpp Line: 56)
-
-Platform assembly: C:\Users\Koffer\Documents\GitHub\Advances-in-Media-Production\bin\AMP_Data\Managed\System.Xml.dll (this message is harmless)
-Platform assembly: C:\Users\Koffer\Documents\GitHub\Advances-in-Media-Production\bin\AMP_Data\Managed\System.Data.dll (this message is harmless)
-UnloadTime: 10.364094 ms
+Platform assembly: E:\Dropbox\HS Furtwangen\Master\1. Semester\AdvMProd\Anwendung\bin\AMP_Data\Managed\System.dll (this message is harmless)
+Platform assembly: E:\Dropbox\HS Furtwangen\Master\1. Semester\AdvMProd\Anwendung\bin\AMP_Data\Managed\System.Xml.dll (this message is harmless)
+Platform assembly: E:\Dropbox\HS Furtwangen\Master\1. Semester\AdvMProd\Anwendung\bin\AMP_Data\Managed\System.Data.dll (this message is harmless)
+UnloadTime: 0.872404 ms
 Parent of RectTransform is being set with parent property. Consider using the SetParent method instead, with the worldPositionStays argument set to false. This will retain local orientation and scale rather than world orientation and scale, which can prevent common UI scaling issues.
  
-(Filename: C:/buildslave/unity/build/artifacts/StandalonePlayerGenerated/UnityEngineDebug.cpp Line: 56)
+(Filename: C:/BuildAgent/work/d63dfc6385190b60/artifacts/StandalonePlayerGenerated/UnityEngineDebug.cpp Line: 49)
 
 Unloading 5 Unused Serialized files (Serialized files now loaded: 0 / Dirty serialized files: 0)
 
-Unloading 5 unused Assets to reduce memory usage. Loaded Objects now: 236.
-Total: 0.673130 ms (FindLiveObjects: 0.006942 ms CreateObjectMapping: 0.006640 ms MarkObjects: 0.255366 ms  DeleteObjects: 0.033203 ms)
+Unloading 5 unused Assets to reduce memory usage. Loaded Objects now: 226.
+Total: 0.613637 ms (FindLiveObjects: 0.009019 ms CreateObjectMapping: 0.006531 ms MarkObjects: 0.224554 ms  DeleteObjects: 0.022704 ms)
 
-Fallback handler could not load library C:/Users/Koffer/Documents/GitHub/Advances-in-Media-Production/bin/AMP_Data/Mono/c
-Fallback handler could not load library C:/Users/Koffer/Documents/GitHub/Advances-in-Media-Production/bin/AMP_Data/Mono/.\c
-Fallback handler could not load library C:/Users/Koffer/Documents/GitHub/Advances-in-Media-Production/bin/AMP_Data/Mono/c
-Fallback handler could not load library C:/Users/Koffer/Documents/GitHub/Advances-in-Media-Production/bin/AMP_Data/Mono/libc
-Fallback handler could not load library C:/Users/Koffer/Documents/GitHub/Advances-in-Media-Production/bin/AMP_Data/Mono/.\libc
-Fallback handler could not load library C:/Users/Koffer/Documents/GitHub/Advances-in-Media-Production/bin/AMP_Data/Mono/libc
-Fallback handler could not load library C:/Users/Koffer/Documents/GitHub/Advances-in-Media-Production/bin/AMP_Data/Mono/libc
-Fallback handler could not load library C:/Users/Koffer/Documents/GitHub/Advances-in-Media-Production/bin/AMP_Data/Mono/.\libc
-Fallback handler could not load library C:/Users/Koffer/Documents/GitHub/Advances-in-Media-Production/bin/AMP_Data/Mono/libc
+[AVProLiveCamera] version 1.94 initialised
+ 
+(Filename: C:/BuildAgent/work/d63dfc6385190b60/artifacts/StandalonePlayerGenerated/UnityEngineDebug.cpp Line: 49)
+

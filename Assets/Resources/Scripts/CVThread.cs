@@ -153,8 +153,8 @@ public unsafe class CVThread
 
         var frameRgb = frame.Convert<Rgb, byte>();
 
-        rgbImgLeft = GetImageData(frameRgb.Copy(new Rectangle(0, 0, 1920, 1080)));
         rgbImgRight = GetImageData(frameRgb.Copy(new Rectangle(0, 0, 1920, 1080)));
+        rgbImgLeft = GetImageData(frameRgb.Copy(new Rectangle(0, 1079, 1920, 1080)));
     }
 
     private void ProcessCamera(byte* imgDataPtr, ref byte[] rgbImgLeft, ref byte[] rgbImgRight)
