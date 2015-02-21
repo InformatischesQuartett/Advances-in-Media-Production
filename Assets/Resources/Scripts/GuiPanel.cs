@@ -9,7 +9,7 @@ public class GuiPanel : MonoBehaviour
     private Info _info;
     private GameObject _parentGuiBottom;
     private GameObject _parentGuiCamRig;
-    private ScreenControlls _screens;
+    private ScreenControls _screens;
     private Text _staticSettingsText;
     private Text[] _texts;
 
@@ -19,7 +19,7 @@ public class GuiPanel : MonoBehaviour
         _parentGuiBottom = GameObject.Find("GuiBottomParent");
         _parentGuiCamRig = GameObject.Find("OVRCameraRig");
         transform.parent = _parentGuiBottom.transform;
-        _screens = FindObjectOfType<ScreenControlls>();
+        _screens = FindObjectOfType<ScreenControls>();
         _screens.GuiTextUpdate = UpdateGuiText;
         _info = new Info();
         _gui = false;

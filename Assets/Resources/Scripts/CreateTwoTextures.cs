@@ -1,7 +1,6 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.IO;
+﻿using System.IO;
 using System.Threading;
+using UnityEngine;
 
 public delegate void ConvDataCallback(byte[] imgLeft, byte[] imgRight);
 

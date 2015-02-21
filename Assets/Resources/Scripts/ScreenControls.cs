@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
-public class ScreenControlls : MonoBehaviour
+public class ScreenControls : MonoBehaviour
 {
     private GameObject _screenL;
     private GameObject _screenR;
