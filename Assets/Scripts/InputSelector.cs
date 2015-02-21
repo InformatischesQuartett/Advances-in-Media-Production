@@ -272,7 +272,7 @@ public class InputSelector : MonoBehaviour {
 			}
 
 		} else {
-			GUI.Label (new Rect (Screen.width * 0.02f, Screen.height * 0.02f, Screen.width, Screen.height * 0.10f), "Input selected. Please put on your HMD now.", _fontStyle);
+			GUI.Label (new Rect (Screen.width * 0.02f, Screen.height / 1.2f, Screen.width, Screen.height * 0.10f), "Please put on your HMD now.", _fontStyle);
 		}
 
 		GUI.skin.label.fontSize = 12;
