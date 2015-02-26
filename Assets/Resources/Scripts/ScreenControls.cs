@@ -127,6 +127,12 @@ public class ScreenControls : MonoBehaviour
         if (Input.GetAxis("Preset Reset") > 0)
             LoadPreset();
 
+		if (Input.GetKeyDown (KeyCode.Escape))
+			Application.Quit();
+
+		if (Input.GetKeyDown(KeyCode.Backspace))
+		    Application.LoadLevel(0);
+
 
         _positionVectorScreenL.x = Hit/2f;
         _positionVectorScreenL.y = 0;
